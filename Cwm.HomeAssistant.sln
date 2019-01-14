@@ -1,0 +1,36 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio 15
+VisualStudioVersion = 15.0.28307.136
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Cwm.HomeAssistant.ConfigGenerator", "Cwm.HomeAssistant.ConfigGenerator\Cwm.HomeAssistant.ConfigGenerator.csproj", "{7B4AF46C-737E-404B-B495-0864E737E9D9}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution items", "Solution items", "{A87B1E83-8B3B-45BB-A84D-5C016226C0CC}"
+	ProjectSection(SolutionItems) = preProject
+		readme.md = readme.md
+	EndProjectSection
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Cwm.HomeAssistant.ConfigGenerator.Tests", "Cwm.HomeAssistant.ConfigGenerator.Tests\Cwm.HomeAssistant.ConfigGenerator.Tests.csproj", "{0E454259-FF13-425B-B2E1-EE7FA515A5AF}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{7B4AF46C-737E-404B-B495-0864E737E9D9}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{7B4AF46C-737E-404B-B495-0864E737E9D9}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{7B4AF46C-737E-404B-B495-0864E737E9D9}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{7B4AF46C-737E-404B-B495-0864E737E9D9}.Release|Any CPU.Build.0 = Release|Any CPU
+		{0E454259-FF13-425B-B2E1-EE7FA515A5AF}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{0E454259-FF13-425B-B2E1-EE7FA515A5AF}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{0E454259-FF13-425B-B2E1-EE7FA515A5AF}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{0E454259-FF13-425B-B2E1-EE7FA515A5AF}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {42922F54-C227-4026-A77A-1E5C7243FBAE}
+	EndGlobalSection
+EndGlobal
