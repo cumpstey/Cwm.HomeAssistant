@@ -3,6 +3,7 @@ using Cwm.HomeAssistant.Config.Initializtion;
 using Cwm.HomeAssistant.Config.Models;
 using Cwm.HomeAssistant.Config.Services;
 using NUnit.Framework;
+using System.Collections.Generic;
 using System.Linq;
 
 namespace Cwm.HomeAssistant.ConfigTransformer.Services
@@ -155,15 +156,16 @@ namespace Cwm.HomeAssistant.ConfigTransformer.Services
 
         #region Button
 
-        [Test]
-        public void Button_sensor_config_is_generated()
+        [TestCase("button")]
+        [TestCase("1-button")]
+        public void Button_sensor_config_is_generated(string declaration)
         {
             // Arrange
             var transformer = new MqttSensorConfigTransformer(new DummyConfiguration());
             var definition = new SensorDefinition
             {
                 Name = "Test button",
-                Type = new[] { "button" },
+                Type = new[] { declaration },
                 Platform = "hubitat",
             };
             var expectedConfig = @"
@@ -174,6 +176,120 @@ namespace Cwm.HomeAssistant.ConfigTransformer.Services
   state_topic: hubitat/Test button/pushed
   payload_on: 1
   off_delay: 1
+".Trim();
+
+            // Action
+            var result = transformer.TransformConfig(definition);
+
+            // Assert
+            Assert.AreEqual(1, result.Keys.Count, "One entity type returned");
+            Assert.AreEqual("binary_sensor", result.Keys.First(), "The type of the entity returned is correct");
+            Assert.AreEqual(1, result["binary_sensor"].Count, "Only one entity returned");
+
+            var config = result["binary_sensor"].First();
+            Assert.AreEqual(expectedConfig, config.Entity, "Config declared as expected");
+            Assert.IsEmpty(config.Customization, "Customization declared as expected");
+        }
+
+        [Test]
+        public void Multiple_button_sensor_config_is_generated()
+        {
+            // Arrange
+            var transformer = new MqttSensorConfigTransformer(new DummyConfiguration());
+            var definition = new SensorDefinition
+            {
+                Name = "Test button",
+                Type = new[] { "2-button" },
+                Platform = "hubitat",
+            };
+            var expectedConfig = new[] { @"
+# Test button 1, from hubitat via MQTT
+- platform: mqtt
+  name: Test button 1
+  retain: true
+  state_topic: hubitat/Test button/pushed
+  payload_on: 1
+  off_delay: 1
+".Trim(), @"
+# Test button 2, from hubitat via MQTT
+- platform: mqtt
+  name: Test button 2
+  retain: true
+  state_topic: hubitat/Test button/pushed
+  payload_on: 2
+  off_delay: 1
+".Trim() };
+
+            // Action
+            var result = transformer.TransformConfig(definition);
+
+            // Assert
+            Assert.AreEqual(1, result.Keys.Count, "One entity type returned");
+            Assert.AreEqual("binary_sensor", result.Keys.First(), "The type of the entity returned is correct");
+            Assert.AreEqual(expectedConfig.Length, result["binary_sensor"].Count, "Correct number of entities returned");
+
+            var configs = result["binary_sensor"].Select(i => i.Entity).ToArray();
+            foreach (var expected in expectedConfig)
+            {
+                Assert.Contains(expected, configs, "Config declared as expected");
+            }
+
+            Assert.IsTrue(result["binary_sensor"].All(i => string.IsNullOrEmpty(i.Customization)), "Customization declared as expected");
+        }
+
+        [Test]
+        public void Hold_button_sensor_config_is_generated()
+        {
+            // Arrange
+            var transformer = new MqttSensorConfigTransformer(new DummyConfiguration());
+            var definition = new SensorDefinition
+            {
+                Name = "Test button",
+                Type = new[] { "hold-button" },
+                Platform = "hubitat",
+            };
+            var expectedConfig = @"
+# Test button (hold), from hubitat via MQTT
+- platform: mqtt
+  name: Test button (hold)
+  retain: true
+  state_topic: hubitat/Test button/held
+  payload_on: 1
+  off_delay: 1
+".Trim();
+
+            // Action
+            var result = transformer.TransformConfig(definition);
+
+            // Assert
+            Assert.AreEqual(1, result.Keys.Count, "One entity type returned");
+            Assert.AreEqual("binary_sensor", result.Keys.First(), "The type of the entity returned is correct");
+            Assert.AreEqual(1, result["binary_sensor"].Count, "Only one entity returned");
+
+            var config = result["binary_sensor"].First();
+            Assert.AreEqual(expectedConfig, config.Entity, "Config declared as expected");
+            Assert.IsEmpty(config.Customization, "Customization declared as expected");
+        }
+
+        [Test]
+        public void Hold_release_button_sensor_config_is_generated()
+        {
+            // Arrange
+            var transformer = new MqttSensorConfigTransformer(new DummyConfiguration());
+            var definition = new SensorDefinition
+            {
+                Name = "Test button",
+                Type = new[] { "hold-release-button" },
+                Platform = "hubitat",
+            };
+            var expectedConfig = @"
+# Test button (hold), from hubitat via MQTT
+- platform: mqtt
+  name: Test button (hold)
+  retain: true
+  state_topic: hubitat/Test button/contact
+  payload_on: closed
+  payload_off: open
 ".Trim();
 
             // Action
@@ -237,7 +353,7 @@ namespace Cwm.HomeAssistant.ConfigTransformer.Services
                 Name = "Test door",
                 Type = new[] { "contact" },
                 Platform = "hubitat",
-                DeviceClass= "door",
+                DeviceClasses = new Dictionary<string, string> { { "contact", "door" } },
             };
             var expectedConfig = @"
 # Test door, from hubitat via MQTT
@@ -259,6 +375,46 @@ namespace Cwm.HomeAssistant.ConfigTransformer.Services
             Assert.AreEqual(1, result["binary_sensor"].Count, "Only one entity returned");
 
             var config = result["binary_sensor"].First();
+            Assert.AreEqual(expectedConfig, config.Entity, "Config declared as expected");
+            Assert.IsEmpty(config.Customization, "Customization declared as expected");
+        }
+
+        #endregion
+
+        #region Illuminance
+
+        [Test]
+        public void Illuminance_sensor_config_is_generated()
+        {
+            // Arrange
+            var transformer = new MqttSensorConfigTransformer(new DummyConfiguration());
+            var definition = new SensorDefinition
+            {
+                Name = "Test device",
+                Type = new[] { "illuminance" },
+                Platform = "hubitat",
+                DeviceId = "Test multisensor",
+            };
+            var expectedConfig = @"
+# Test device illuminance, from hubitat via MQTT
+- platform: mqtt
+  name: Test device illuminance
+  retain: true
+  device_class: illuminance
+  state_topic: hubitat/Test multisensor/illuminance
+  unit_of_measurement: lux
+  force_update: true
+".Trim();
+
+            // Action
+            var result = transformer.TransformConfig(definition);
+
+            // Assert
+            Assert.AreEqual(1, result.Keys.Count, "One entity type returned");
+            Assert.AreEqual("sensor", result.Keys.First(), "The type of the entity returned is correct");
+            Assert.AreEqual(1, result["sensor"].Count, "Only one entity returned");
+
+            var config = result["sensor"].First();
             Assert.AreEqual(expectedConfig, config.Entity, "Config declared as expected");
             Assert.IsEmpty(config.Customization, "Customization declared as expected");
         }
@@ -378,6 +534,79 @@ namespace Cwm.HomeAssistant.ConfigTransformer.Services
             Assert.AreEqual(1, result["sensor"].Count, "Only one entity returned");
 
             var config = result["sensor"].First();
+            Assert.AreEqual(expectedConfig, config.Entity, "Config declared as expected");
+            Assert.IsEmpty(config.Customization, "Customization declared as expected");
+        }
+
+        #endregion
+
+        #region Threshold
+
+        [Test]
+        public void Missing_threshold_attribute_throws()
+        {
+            // Arrange
+            var transformer = new MqttSensorConfigTransformer(new DummyConfiguration());
+            var definition = new SensorDefinition
+            {
+                Name = "Test meter",
+                Type = new[] { "threshold" },
+                Platform = "hubitat",
+                OnCondition = "> 5",
+            };
+
+            // Action
+            Assert.Throws<MissingParameterException>(() => transformer.TransformConfig(definition));
+        }
+
+        [Test]
+        public void Missing_threshold_condition_throws()
+        {
+            // Arrange
+            var transformer = new MqttSensorConfigTransformer(new DummyConfiguration());
+            var definition = new SensorDefinition
+            {
+                Name = "Test meter",
+                Type = new[] { "power-threshold" },
+                Platform = "hubitat",
+            };
+
+            // Action
+            Assert.Throws<MissingParameterException>(() => transformer.TransformConfig(definition));
+        }
+
+        [Test]
+        public void Threshold_sensor_config_is_generated()
+        {
+            // Arrange
+            var transformer = new MqttSensorConfigTransformer(new DummyConfiguration());
+            var definition = new SensorDefinition
+            {
+                Name = "Test meter",
+                Type = new[] { "power-threshold" },
+                Platform = "hubitat",
+                OnCondition = "< 5"
+            };
+            var expectedConfig = @"
+# Test meter, from hubitat via MQTT
+- platform: mqtt
+  name: Test meter
+  retain: true
+  state_topic: hubitat/Test meter/power
+  value_template: '{%if (value | float) < 5-%}on{%-else-%}off{%-endif%}'
+  payload_on: 'on'
+  payload_off: 'off'
+".Trim();
+
+            // Action
+            var result = transformer.TransformConfig(definition);
+
+            // Assert
+            Assert.AreEqual(1, result.Keys.Count, "One entity type returned");
+            Assert.AreEqual("binary_sensor", result.Keys.First(), "The type of the entity returned is correct");
+            Assert.AreEqual(1, result["binary_sensor"].Count, "Only one entity returned");
+
+            var config = result["binary_sensor"].First();
             Assert.AreEqual(expectedConfig, config.Entity, "Config declared as expected");
             Assert.IsEmpty(config.Customization, "Customization declared as expected");
         }

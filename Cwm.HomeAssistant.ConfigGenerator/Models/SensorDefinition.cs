@@ -18,7 +18,7 @@ namespace Cwm.HomeAssistant.Config.Models
 
         public string[] Type { get; set; }
 
-        public string DeviceClass { get; set; }
+        public Dictionary<string, string> DeviceClasses { get; set; }
 
         public string ToDo { get; set; }
 
@@ -29,6 +29,8 @@ namespace Cwm.HomeAssistant.Config.Models
         }
 
         public Dictionary<string, string> Icons { get; set; }
+
+        public string OnCondition { get; set; }
 
         #endregion
     }
