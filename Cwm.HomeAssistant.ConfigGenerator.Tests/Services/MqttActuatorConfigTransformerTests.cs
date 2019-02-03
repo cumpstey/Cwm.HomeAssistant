@@ -159,7 +159,7 @@ namespace Cwm.HomeAssistant.ConfigTransformer.Services
   payload_off: 'off'
 ".Trim();
             var expectedCustomization = @"
-""switch.test_switch"":
+switch.test_switch:
   icon: mdi:my-icon
 ".Trim();
 
@@ -238,7 +238,7 @@ namespace Cwm.HomeAssistant.ConfigTransformer.Services
   payload_off: 'off'
 ".Trim();
             var expectedCustomization = @"
-""light.test_light"":
+light.test_light:
   icon: mdi:my-icon
 ".Trim();
 
@@ -355,8 +355,8 @@ namespace Cwm.HomeAssistant.ConfigTransformer.Services
   name: Test heating
   retain: true
   modes:
-    - auto
-    - heat
+  - auto
+  - heat
   current_temperature_topic: genius/Test room/temperature
   mode_state_topic: genius/Test room/thermostatMode
   temperature_state_topic: genius/Test room/heatingSetpoint
@@ -399,8 +399,8 @@ namespace Cwm.HomeAssistant.ConfigTransformer.Services
   name: Test heating
   retain: true
   modes:
-    - auto
-    - heat
+  - auto
+  - heat
   current_temperature_topic: genius/Test room/temperature
   mode_state_topic: genius/Test room/thermostatMode
   temperature_state_topic: genius/Test room/heatingSetpoint
@@ -411,7 +411,7 @@ namespace Cwm.HomeAssistant.ConfigTransformer.Services
   temp_step: 0.5
 ".Trim();
             var expectedCustomization = @"
-""climate.test_heating"":
+climate.test_heating:
   icon: mdi:my-icon
 ".Trim();
 

@@ -12,6 +12,8 @@
 
         public const string Motion = "motion";
 
+        public const string Power = "power";
+
         public const string Presence = "presence";
 
         public const string Temperature = "temperature";

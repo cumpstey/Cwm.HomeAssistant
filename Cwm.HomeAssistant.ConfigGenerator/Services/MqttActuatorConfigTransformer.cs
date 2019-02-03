@@ -58,11 +58,6 @@ namespace Cwm.HomeAssistant.Config.Services
 
             entity.Add($"# {definition.Name}, from {definition.Platform} via MQTT");
 
-            if (definition.ToDo != null)
-            {
-                entity.Add($"# TODO: {definition.ToDo}");
-            }
-
             entity.Add("- platform: mqtt");
             entity.Add($"  name: {definition.Name}");
             entity.Add("  retain: true");
@@ -102,7 +97,7 @@ namespace Cwm.HomeAssistant.Config.Services
 
             if (customization.Any())
             {
-                customization.Insert(0, $@"""light.{FormatAsId(definition.Name)}"":");
+                customization.Insert(0, $@"light.{FormatAsId(definition.Name)}:");
             }
 
             return new ConfigEntry
@@ -118,11 +113,6 @@ namespace Cwm.HomeAssistant.Config.Services
             var customization = new List<string>();
 
             entity.Add($"# {definition.Name}, from {definition.Platform} via MQTT");
-
-            if (definition.ToDo != null)
-            {
-                entity.Add($"# TODO: {definition.ToDo}");
-            }
 
             entity.Add("- platform: mqtt");
             entity.Add($"  name: {definition.Name}");
@@ -159,7 +149,7 @@ namespace Cwm.HomeAssistant.Config.Services
 
             if (customization.Any())
             {
-                customization.Insert(0, $@"""switch.{FormatAsId(definition.Name)}"":");
+                customization.Insert(0, $@"switch.{FormatAsId(definition.Name)}:");
             }
 
             return new ConfigEntry
@@ -176,11 +166,6 @@ namespace Cwm.HomeAssistant.Config.Services
 
             entity.Add($"# {definition.Name}, from {definition.Platform} via MQTT");
 
-            if (definition.ToDo != null)
-            {
-                entity.Add($"# TODO: {definition.ToDo}");
-            }
-
             entity.Add("- platform: mqtt");
             entity.Add($"  name: {definition.Name}");
             entity.Add("  retain: true");
@@ -195,8 +180,8 @@ namespace Cwm.HomeAssistant.Config.Services
             {
                 case "genius":
                     entity.Add("  modes:");
-                    entity.Add("    - auto");
-                    entity.Add("    - heat");
+                    entity.Add("  - auto");
+                    entity.Add("  - heat");
                     entity.Add($"  current_temperature_topic: {prefix}/{definition.DeviceId}/temperature");
                     entity.Add($"  mode_state_topic: {prefix}/{definition.DeviceId}/thermostatMode");
                     entity.Add($"  temperature_state_topic: {prefix}/{definition.DeviceId}/heatingSetpoint");
@@ -212,7 +197,7 @@ namespace Cwm.HomeAssistant.Config.Services
 
             if (customization.Any())
             {
-                customization.Insert(0, $@"""climate.{FormatAsId(definition.Name)}"":");
+                customization.Insert(0, $@"climate.{FormatAsId(definition.Name)}:");
             }
 
             return new ConfigEntry

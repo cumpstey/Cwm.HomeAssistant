@@ -23,8 +23,6 @@
         public string Type { get; set; }
 
         public string Icon { get; set; }
-
-        public string ToDo { get; set; }
      
         #endregion
     }

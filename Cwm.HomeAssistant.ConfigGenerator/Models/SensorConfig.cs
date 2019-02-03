@@ -13,9 +13,7 @@ namespace Cwm.HomeAssistant.Config.Models
         public string Type { get; set; }
 
         public string DeviceClass { get; set; }
-
-        public string ToDo { get; set; }
-
+  
         public string DeviceId { get; set; }
 
         public string Icon { get; set; }

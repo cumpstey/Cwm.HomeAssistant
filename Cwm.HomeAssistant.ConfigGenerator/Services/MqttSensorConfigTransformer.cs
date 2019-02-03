@@ -26,29 +26,34 @@ namespace Cwm.HomeAssistant.Config.Services
 
         #region Methods
 
-        public KeyedCollection<ConfigEntry> TransformConfig(SensorDefinition definition)
+        public KeyedCollection<ConfigEntry> TransformConfig(SensorDeviceDefinition definition)
         {
-            var configs = new KeyedCollection<ConfigEntry>();
-            foreach (var type in definition.Type)
+            if (definition.Sensors == null)
             {
-                if (type.EndsWith("button"))
+                return new KeyedCollection<ConfigEntry>();
+            }
+
+            var configs = new KeyedCollection<ConfigEntry>();
+            foreach (var sensor in definition.Sensors)
+            {
+                if (sensor.Type.EndsWith("button"))
                 {
-                    var config = ProcessButtonDefinition(type, definition);
+                    var config = ProcessButtonDefinition(sensor, definition);
                     foreach (var item in config)
                     {
                         configs.Add(EntityType.BinarySensor, item);
                     }
                 }
-                else if (type.EndsWith(SensorType.Threshold))
+                else if (sensor.Type.EndsWith(SensorType.Threshold))
                 {
-                    var attribute = Regex.Replace(type, $"-?{SensorType.Threshold}$", string.Empty);
+                    var attribute = Regex.Replace(sensor.Type, $"-?{SensorType.Threshold}$", string.Empty);
 
                     if (string.IsNullOrWhiteSpace(attribute))
                     {
                         throw new MissingParameterException("Threshold attribute is missing");
                     }
 
-                    if (string.IsNullOrWhiteSpace(definition.OnCondition))
+                    if (string.IsNullOrWhiteSpace(sensor.OnCondition))
                     {
                         throw new MissingParameterException("Threshold on condition is missing");
                     }
@@ -59,36 +64,34 @@ namespace Cwm.HomeAssistant.Config.Services
                         Name = definition.Name,
                         Platform = definition.Platform,
                         DeviceId = definition.DeviceId,
-                        DeviceClass = definition.DeviceClasses?.GetValueOrDefault(type),
-                        Icon = definition.Icons?.GetValueOrDefault(type),
-                        ToDo = definition.ToDo,
+                        DeviceClass = sensor.DeviceClass,
+                        Icon = sensor.Icon,
                         ThresholdAttribute = attribute,
-                        ThresholdOnCondition = definition.OnCondition,
+                        ThresholdOnCondition = sensor.OnCondition,
                     });
                     configs.Add(EntityType.BinarySensor, config);
                 }
                 else
                 {
                     // Figure out whether it should be a binary sensor
-                    var entityType = new[] { SensorType.Button, SensorType.Contact, SensorType.Motion, SensorType.Presence }.Contains(type)
+                    var entityType = new[] { SensorType.Button, SensorType.Contact, SensorType.Motion, SensorType.Presence }.Contains(sensor.Type)
                         ? EntityType.BinarySensor : EntityType.Sensor;
 
                     // Generate a reasonably human-friendly name, depending on the type of sensor.
-                    var name = type == SensorType.Battery
+                    var name = sensor.Type == SensorType.Battery
                         ? $"{definition.DeviceId} battery"
-                        : new[] { SensorType.Button, SensorType.Contact, SensorType.Presence }.Contains(type)
+                        : new[] { SensorType.Button, SensorType.Contact, SensorType.Presence }.Contains(sensor.Type)
                             ? definition.Name
-                            : $"{definition.Name} {type}";
+                            : $"{definition.Name} {sensor.Type}";
 
                     var config = FormatSensorDefinition(entityType, new SensorConfig
                     {
-                        Type = type,
+                        Type = sensor.Type,
                         Name = name,
                         Platform = definition.Platform,
                         DeviceId = definition.DeviceId,
-                        DeviceClass = definition.DeviceClasses?.GetValueOrDefault(type),
-                        Icon = definition.Icons?.GetValueOrDefault(type),
-                        ToDo = definition.ToDo,
+                        DeviceClass = sensor.DeviceClass,
+                        Icon = sensor.Icon,
                     });
                     configs.Add(entityType, config);
                 }
@@ -113,14 +116,18 @@ namespace Cwm.HomeAssistant.Config.Services
             var customization = new List<string>();
 
             entity.Add($"# {sensor.Name}, from {sensor.Platform} via MQTT");
+            entity.Add("- platform: mqtt");
 
-            if (sensor.ToDo != null)
+            if (sensor.Name.Contains("'"))
             {
-                entity.Add($"# TODO: {sensor.ToDo}");
+                entity.Add($"  name: {sensor.Name.Replace("'", string.Empty)}");
+                customization.Add($"  friendly_name: {sensor.Name}");
+            }
+            else
+            {
+                entity.Add($"  name: {sensor.Name}");
             }
 
-            entity.Add("- platform: mqtt");
-            entity.Add($"  name: {sensor.Name}");
             entity.Add("  retain: true");
 
             if (sensor.Icon != null)
@@ -132,7 +139,7 @@ namespace Cwm.HomeAssistant.Config.Services
 
             if (customization.Any())
             {
-                customization.Insert(0, $@"""{entityType}.{FormatAsId(sensor.Name)}"":");
+                customization.Insert(0, $@"{entityType}.{FormatAsId(sensor.Name)}:");
             }
 
             return new ConfigEntry
@@ -142,90 +149,84 @@ namespace Cwm.HomeAssistant.Config.Services
             };
         }
 
-        private IReadOnlyCollection<ConfigEntry> ProcessButtonDefinition(string type, SensorDefinition definition)
+        private IReadOnlyCollection<ConfigEntry> ProcessButtonDefinition(SensorDefinition sensor, SensorDeviceDefinition definition)
         {
-            if (type == "hold-button")
+            if (sensor.Type == "hold-button")
             {
                 void addConfig(List<string> entity)
                 {
                     var prefix = _configuration.GetPlatformPrefix(definition.Platform);
-                    entity.Add($"  state_topic: {prefix}/{definition.DeviceId}/held");
-                    entity.Add("  payload_on: 1");
+                    entity.Add($"  state_topic: {prefix}/{definition.DeviceId}/1/hold");
+                    entity.Add("  payload_on: held");
                     entity.Add("  off_delay: 1");
                 }
 
                 return new[] {
                     FormatDefinition(addConfig, EntityType.BinarySensor, new SensorConfig
                     {
-                        Type = type,
                         Name = $"{definition.Name} (hold)",
                         Platform = definition.Platform,
                         DeviceId = definition.DeviceId,
-                        DeviceClass = definition.DeviceClasses?.GetValueOrDefault(type),
-                        Icon = definition.Icons?.GetValueOrDefault(type),
-                        ToDo = definition.ToDo,
+                        DeviceClass = sensor.DeviceClass,
+                        Icon = sensor.Icon,
                     })
                 };
             }
-            else if (type == "hold-release-button")
+            else if (sensor.Type == "hold-release-button")
             {
                 // For a hold/release button, until I find a better way I'm using a contact sensor.
                 void addConfig(List<string> entity)
                 {
                     var prefix = _configuration.GetPlatformPrefix(definition.Platform);
-                    entity.Add($"  state_topic: {prefix}/{definition.DeviceId}/contact");
-                    entity.Add("  payload_on: closed");
-                    entity.Add("  payload_off: open");
+                    entity.Add($"  state_topic: {prefix}/{definition.DeviceId}/1/hold");
+                    entity.Add("  payload_on: held");
+                    entity.Add("  payload_off: released");
                 }
 
                 return new[] {
                     FormatDefinition(addConfig, EntityType.BinarySensor, new SensorConfig {
-                        Type = type,
                         Name = $"{definition.Name} (hold)",
                         Platform = definition.Platform,
                         DeviceId = definition.DeviceId,
-                        DeviceClass = definition.DeviceClasses?.GetValueOrDefault(type),
-                        Icon = definition.Icons?.GetValueOrDefault(type),
-                        ToDo = definition.ToDo,
+                        DeviceClass = sensor.DeviceClass,
+                        Icon = sensor.Icon,
                     })
                 };
             }
-            else if (type == "button" || Regex.IsMatch(type, @"\d+-button"))
+            else if (sensor.Type == "button" || Regex.IsMatch(sensor.Type, @"\d+-button"))
             {
-                var count = type == "button" ? 1 : int.Parse(type.Split('-').First());
+                var count = sensor.Type == "button" ? 1 : int.Parse(sensor.Type.Split('-').First());
                 var configs = new List<ConfigEntry>();
                 for (var i = 1; i <= count; i++)
                 {
                     void addConfig(List<string> entity)
                     {
                         var prefix = _configuration.GetPlatformPrefix(definition.Platform);
-                        entity.Add($"  state_topic: {prefix}/{definition.DeviceId}/pushed");
-                        entity.Add($"  payload_on: {i}");
+                        entity.Add($"  state_topic: {prefix}/{definition.DeviceId}/{i}/push");
+                        entity.Add($"  payload_on: pushed");
                         entity.Add("  off_delay: 1");
                     }
 
                     var name = count == 1 ? definition.Name : $"{definition.Name} {i}";
                     configs.Add(FormatDefinition(addConfig, EntityType.BinarySensor, new SensorConfig
                     {
-                        Type = type,
                         Name = name,
                         Platform = definition.Platform,
                         DeviceId = definition.DeviceId,
-                        DeviceClass = definition.DeviceClasses?.GetValueOrDefault(type),
-                        Icon = definition.Icons?.GetValueOrDefault(type),
-                        ToDo = definition.ToDo,
+                        DeviceClass = sensor.DeviceClass,
+                        Icon = sensor.Icon,
                     }));
                 }
 
                 return configs;
             }
 
-            throw new UnrecognizedTypeException(type);
+            throw new UnrecognizedTypeException(sensor.Type);
         }
 
         private ConfigEntry FormatSensorDefinition(string entityType, SensorConfig sensor)
         {
-            Action<List<string>> addConfig = (entity) =>
+            void addConfig(List<string> entity)
             {
                 var prefix = _configuration.GetPlatformPrefix(sensor.Platform);
                 switch (sensor.Type)
@@ -257,6 +258,16 @@ namespace Cwm.HomeAssistant.Config.Services
                         entity.Add("  payload_on: active");
                         entity.Add("  payload_off: inactive");
                         break;
+                    case SensorType.Power:
+                        if (sensor.DeviceClass != null)
+                        {
+                            entity.Add($"  device_class: {sensor.DeviceClass}");
+                        }
+
+                        entity.Add($"  state_topic: {prefix}/{sensor.DeviceId}/power");
+                        entity.Add("  unit_of_measurement: W");
+                        entity.Add("  force_update: true");
+                        break;
                     case SensorType.Presence:
                         entity.Add($"  device_class: {sensor.DeviceClass ?? "presence"}");
                         entity.Add($"  state_topic: {prefix}/{sensor.DeviceId}/presence");
@@ -283,7 +294,7 @@ namespace Cwm.HomeAssistant.Config.Services
                     default:
                         throw new UnrecognizedTypeException(sensor.Type);
                 }
-            };
+            }
 
             return FormatDefinition(addConfig, entityType, sensor);
         }

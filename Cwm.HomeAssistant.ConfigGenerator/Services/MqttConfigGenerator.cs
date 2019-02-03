@@ -54,7 +54,7 @@ namespace Cwm.HomeAssistant.Config.Services
         public void TransformSensorConfig(string inputFile, string outputDirectory)
         {
             var definitionJson = File.ReadAllText(inputFile);
-            var definitions = JsonConvert.DeserializeObject<IReadOnlyList<SensorDefinition>>(definitionJson);
+            var definitions = JsonConvert.DeserializeObject<IReadOnlyList<SensorDeviceDefinition>>(definitionJson);
 
             var configs = new KeyedCollection<ConfigEntry>();
             foreach(var definition in definitions)

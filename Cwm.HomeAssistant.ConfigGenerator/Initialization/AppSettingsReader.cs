@@ -19,7 +19,7 @@ namespace Cwm.HomeAssistant.Config.Initialization
             var outputFolder = ConfigurationManager.AppSettings["OutputFolder"];
 
             var platformPrefixes = ConfigurationManager.AppSettings.AllKeys.Where(i => i.StartsWith(PlatformPrefixKey))
-                .ToDictionary(key => key.Substring(PlatformPrefixKey.Length), value => value);
+                .ToDictionary(key => key.Substring(PlatformPrefixKey.Length), value => ConfigurationManager.AppSettings[value]);
 
             return new Configuration(sourceFolder, outputFolder, platformPrefixes);
         }

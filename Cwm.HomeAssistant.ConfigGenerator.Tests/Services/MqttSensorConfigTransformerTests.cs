@@ -1,3 +1,4 @@
+using Cwm.HomeAssistant.Config;
 using Cwm.HomeAssistant.Config.Exceptions;
 using Cwm.HomeAssistant.Config.Initializtion;
 using Cwm.HomeAssistant.Config.Models;
@@ -16,11 +17,11 @@ namespace Cwm.HomeAssistant.ConfigTransformer.Services
         {
             // Arrange
             var transformer = new MqttSensorConfigTransformer(new DummyConfiguration());
-            var definition = new SensorDefinition
+            var definition = new SensorDeviceDefinition
             {
-                Name = "Test device",
-                Type = new[] { "contact" },
+                DeviceId = "Test device",
                 Platform = "unsupported",
+                Sensors = new[] { new SensorDefinition { Type = "contact" } },
             };
 
             // Assert
@@ -32,11 +33,11 @@ namespace Cwm.HomeAssistant.ConfigTransformer.Services
         {
             // Arrange
             var transformer = new MqttSensorConfigTransformer(new DummyConfiguration());
-            var definition = new SensorDefinition
+            var definition = new SensorDeviceDefinition
             {
-                Name = "Test sensor",
-                Type = new[] { "temperature" },
+                DeviceId = "Test sensor",
                 Platform = "smartthings",
+                Sensors = new[] { new SensorDefinition { Type = "temperature" } },
             };
             var expectedPartialConfig = @"
   state_topic: this/is/a/test/Test sensor/temperature
@@ -65,12 +66,12 @@ namespace Cwm.HomeAssistant.ConfigTransformer.Services
         {
             // Arrange
             var transformer = new MqttSensorConfigTransformer(new DummyConfiguration());
-            var definition = new SensorDefinition
+            var definition = new SensorDeviceDefinition
             {
-                Name = "Test device",
-                Type = new[] { sensorType },
-                Platform = "hubitat",
                 DeviceId = "Test multisensor",
+                Platform = "hubitat",
+                Name = "Test device",
+                Sensors = new[] { new SensorDefinition { Type = sensorType } },
             };
             var expectedPartialConfig = $@"
   name: {name}
@@ -94,12 +95,16 @@ namespace Cwm.HomeAssistant.ConfigTransformer.Services
         {
             // Arrange
             var transformer = new MqttSensorConfigTransformer(new DummyConfiguration());
-            var definition = new SensorDefinition
+            var definition = new SensorDeviceDefinition
             {
-                Name = "Test device",
-                Type = new[] { "battery", "motion", "temperature" },
-                Platform = "hubitat",
                 DeviceId = "Test multisensor",
+                Platform = "hubitat",
+                Name = "Test device",
+                Sensors = new[] {
+                    new SensorDefinition { Type = "battery" },
+                    new SensorDefinition { Type = "motion" },
+                    new SensorDefinition { Type = "temperature" },
+                },
             };
 
             // Action
@@ -113,6 +118,39 @@ namespace Cwm.HomeAssistant.ConfigTransformer.Services
             Assert.AreEqual(1, result["binary_sensor"].Count, "Expected number of entities returned");
         }
 
+        [Test]
+        public void Generated_name_with_apostrophe_is_as_expected()
+        {
+            // Arrange
+            var transformer = new MqttSensorConfigTransformer(new DummyConfiguration());
+            var definition = new SensorDeviceDefinition
+            {
+                DeviceId = "Test user's button",
+                Platform = "hubitat",
+                Sensors = new[] { new SensorDefinition { Type = "button" } },
+            };
+            var expectedPartialConfig = $@"
+  name: Test users button
+".Trim();
+            var expectedCustomization = $@"
+binary_sensor.test_users_button:
+  friendly_name: Test user's button
+".Trim();
+
+            // Action
+            var result = transformer.TransformConfig(definition);
+
+            // Assert
+            Assert.AreEqual(1, result.Keys.Count, "One entity type returned");
+            Assert.AreEqual("binary_sensor", result.Keys.First(), "The type of the entity returned is correct");
+            Assert.AreEqual(1, result["binary_sensor"].Count, "Only one entity returned");
+
+            var config = result["binary_sensor"].First();
+            Assert.IsTrue(config.Entity.Contains(expectedPartialConfig), config.Entity, "Config declared as expected");
+
+            Assert.AreEqual(expectedCustomization, config.Customization, "Customization declared as expected");
+        }
+
         #endregion General
 
         #region Battery
@@ -122,12 +160,12 @@ namespace Cwm.HomeAssistant.ConfigTransformer.Services
         {
             // Arrange
             var transformer = new MqttSensorConfigTransformer(new DummyConfiguration());
-            var definition = new SensorDefinition
+            var definition = new SensorDeviceDefinition
             {
-                Name = "Test device",
-                Type = new[] { "battery" },
-                Platform = "hubitat",
                 DeviceId = "Test multisensor",
+                Platform = "hubitat",
+                Name = "Test device",
+                Sensors = new[] { new SensorDefinition { Type = "battery" } },
             };
             var expectedConfig = @"
 # Test multisensor battery, from hubitat via MQTT
@@ -158,23 +196,23 @@ namespace Cwm.HomeAssistant.ConfigTransformer.Services
 
         [TestCase("button")]
         [TestCase("1-button")]
-        public void Button_sensor_config_is_generated(string declaration)
+        public void Button_sensor_config_is_generated(string sensorType)
         {
             // Arrange
             var transformer = new MqttSensorConfigTransformer(new DummyConfiguration());
-            var definition = new SensorDefinition
+            var definition = new SensorDeviceDefinition
             {
-                Name = "Test button",
-                Type = new[] { declaration },
+                DeviceId = "Test button",
                 Platform = "hubitat",
+                Sensors = new[] { new SensorDefinition { Type = sensorType } },
             };
             var expectedConfig = @"
 # Test button, from hubitat via MQTT
 - platform: mqtt
   name: Test button
   retain: true
-  state_topic: hubitat/Test button/pushed
-  payload_on: 1
+  state_topic: hubitat/Test button/1/push
+  payload_on: pushed
   off_delay: 1
 ".Trim();
 
@@ -196,27 +234,27 @@ namespace Cwm.HomeAssistant.ConfigTransformer.Services
         {
             // Arrange
             var transformer = new MqttSensorConfigTransformer(new DummyConfiguration());
-            var definition = new SensorDefinition
+            var definition = new SensorDeviceDefinition
             {
-                Name = "Test button",
-                Type = new[] { "2-button" },
+                DeviceId = "Test button",
                 Platform = "hubitat",
+                Sensors = new[] { new SensorDefinition { Type = "2-button" } },
             };
             var expectedConfig = new[] { @"
 # Test button 1, from hubitat via MQTT
 - platform: mqtt
   name: Test button 1
   retain: true
-  state_topic: hubitat/Test button/pushed
-  payload_on: 1
+  state_topic: hubitat/Test button/1/push
+  payload_on: pushed
   off_delay: 1
 ".Trim(), @"
 # Test button 2, from hubitat via MQTT
 - platform: mqtt
   name: Test button 2
   retain: true
-  state_topic: hubitat/Test button/pushed
-  payload_on: 2
+  state_topic: hubitat/Test button/2/push
+  payload_on: pushed
   off_delay: 1
 ".Trim() };
 
@@ -242,19 +280,19 @@ namespace Cwm.HomeAssistant.ConfigTransformer.Services
         {
             // Arrange
             var transformer = new MqttSensorConfigTransformer(new DummyConfiguration());
-            var definition = new SensorDefinition
+            var definition = new SensorDeviceDefinition
             {
-                Name = "Test button",
-                Type = new[] { "hold-button" },
+                DeviceId = "Test button",
                 Platform = "hubitat",
+                Sensors = new[] { new SensorDefinition { Type = "hold-button" } },
             };
             var expectedConfig = @"
 # Test button (hold), from hubitat via MQTT
 - platform: mqtt
   name: Test button (hold)
   retain: true
-  state_topic: hubitat/Test button/held
-  payload_on: 1
+  state_topic: hubitat/Test button/1/hold
+  payload_on: held
   off_delay: 1
 ".Trim();
 
@@ -276,20 +314,20 @@ namespace Cwm.HomeAssistant.ConfigTransformer.Services
         {
             // Arrange
             var transformer = new MqttSensorConfigTransformer(new DummyConfiguration());
-            var definition = new SensorDefinition
+            var definition = new SensorDeviceDefinition
             {
-                Name = "Test button",
-                Type = new[] { "hold-release-button" },
+                DeviceId = "Test button",
                 Platform = "hubitat",
+                Sensors = new[] { new SensorDefinition { Type = "hold-release-button" } },
             };
             var expectedConfig = @"
 # Test button (hold), from hubitat via MQTT
 - platform: mqtt
   name: Test button (hold)
   retain: true
-  state_topic: hubitat/Test button/contact
-  payload_on: closed
-  payload_off: open
+  state_topic: hubitat/Test button/1/hold
+  payload_on: held
+  payload_off: released
 ".Trim();
 
             // Action
@@ -314,11 +352,11 @@ namespace Cwm.HomeAssistant.ConfigTransformer.Services
         {
             // Arrange
             var transformer = new MqttSensorConfigTransformer(new DummyConfiguration());
-            var definition = new SensorDefinition
+            var definition = new SensorDeviceDefinition
             {
-                Name = "Test contact",
-                Type = new[] { "contact" },
+                DeviceId = "Test contact",
                 Platform = "hubitat",
+                Sensors = new[] { new SensorDefinition { Type = "contact" } },
             };
             var expectedConfig = @"
 # Test contact, from hubitat via MQTT
@@ -348,12 +386,11 @@ namespace Cwm.HomeAssistant.ConfigTransformer.Services
         {
             // Arrange
             var transformer = new MqttSensorConfigTransformer(new DummyConfiguration());
-            var definition = new SensorDefinition
+            var definition = new SensorDeviceDefinition
             {
-                Name = "Test door",
-                Type = new[] { "contact" },
+                DeviceId = "Test door",
                 Platform = "hubitat",
-                DeviceClasses = new Dictionary<string, string> { { "contact", "door" } },
+                Sensors = new[] { new SensorDefinition { Type = "contact", DeviceClass = "door" } },
             };
             var expectedConfig = @"
 # Test door, from hubitat via MQTT
@@ -388,12 +425,12 @@ namespace Cwm.HomeAssistant.ConfigTransformer.Services
         {
             // Arrange
             var transformer = new MqttSensorConfigTransformer(new DummyConfiguration());
-            var definition = new SensorDefinition
+            var definition = new SensorDeviceDefinition
             {
-                Name = "Test device",
-                Type = new[] { "illuminance" },
-                Platform = "hubitat",
                 DeviceId = "Test multisensor",
+                Platform = "hubitat",
+                Name = "Test device",
+                Sensors = new[] { new SensorDefinition { Type = "illuminance" } },
             };
             var expectedConfig = @"
 # Test device illuminance, from hubitat via MQTT
@@ -428,12 +465,12 @@ namespace Cwm.HomeAssistant.ConfigTransformer.Services
         {
             // Arrange
             var transformer = new MqttSensorConfigTransformer(new DummyConfiguration());
-            var definition = new SensorDefinition
+            var definition = new SensorDeviceDefinition
             {
-                Name = "Test device",
-                Type = new[] { "motion" },
-                Platform = "hubitat",
                 DeviceId = "Test multisensor",
+                Platform = "hubitat",
+                Name = "Test device",
+                Sensors = new[] { new SensorDefinition { Type = "motion" } },
             };
             var expectedConfig = @"
 # Test device motion, from hubitat via MQTT
@@ -461,6 +498,45 @@ namespace Cwm.HomeAssistant.ConfigTransformer.Services
 
         #endregion
 
+        #region Power
+
+        [Test]
+        public void Power_sensor_config_is_generated()
+        {
+            // Arrange
+            var transformer = new MqttSensorConfigTransformer(new DummyConfiguration());
+            var definition = new SensorDeviceDefinition
+            {
+                DeviceId = "Test meter",
+                Platform = "hubitat",
+                Name = "Test device",
+                Sensors = new[] { new SensorDefinition { Type = "power" } },
+            };
+            var expectedConfig = @"
+# Test device power, from hubitat via MQTT
+- platform: mqtt
+  name: Test device power
+  retain: true
+  state_topic: hubitat/Test meter/power
+  unit_of_measurement: W
+  force_update: true
+".Trim();
+
+            // Action
+            var result = transformer.TransformConfig(definition);
+
+            // Assert
+            Assert.AreEqual(1, result.Keys.Count, "One entity type returned");
+            Assert.AreEqual("sensor", result.Keys.First(), "The type of the entity returned is correct");
+            Assert.AreEqual(1, result["sensor"].Count, "Only one entity returned");
+
+            var config = result["sensor"].First();
+            Assert.AreEqual(expectedConfig, config.Entity, "Config declared as expected");
+            Assert.IsEmpty(config.Customization, "Customization declared as expected");
+        }
+
+        #endregion
+
         #region Presence
 
         [Test]
@@ -468,11 +544,11 @@ namespace Cwm.HomeAssistant.ConfigTransformer.Services
         {
             // Arrange
             var transformer = new MqttSensorConfigTransformer(new DummyConfiguration());
-            var definition = new SensorDefinition
+            var definition = new SensorDeviceDefinition
             {
-                Name = "Test presence",
-                Type = new[] { "presence" },
+                DeviceId = "Test presence",
                 Platform = "hubitat",
+                Sensors = new[] { new SensorDefinition { Type = "presence" } },
             };
             var expectedConfig = @"
 # Test presence, from hubitat via MQTT
@@ -507,12 +583,12 @@ namespace Cwm.HomeAssistant.ConfigTransformer.Services
         {
             // Arrange
             var transformer = new MqttSensorConfigTransformer(new DummyConfiguration());
-            var definition = new SensorDefinition
+            var definition = new SensorDeviceDefinition
             {
-                Name = "Test device",
-                Type = new[] { "temperature" },
-                Platform = "hubitat",
                 DeviceId = "Test multisensor",
+                Platform = "hubitat",
+                Name = "Test device",
+                Sensors = new[] { new SensorDefinition { Type = "temperature" } },
             };
             var expectedConfig = @"
 # Test device temperature, from hubitat via MQTT
@@ -547,12 +623,11 @@ namespace Cwm.HomeAssistant.ConfigTransformer.Services
         {
             // Arrange
             var transformer = new MqttSensorConfigTransformer(new DummyConfiguration());
-            var definition = new SensorDefinition
+            var definition = new SensorDeviceDefinition
             {
-                Name = "Test meter",
-                Type = new[] { "threshold" },
+                DeviceId = "Test meter",
                 Platform = "hubitat",
-                OnCondition = "> 5",
+                Sensors = new[] { new SensorDefinition { Type = "threshold", OnCondition = "> 5" } },
             };
 
             // Action
@@ -564,11 +639,11 @@ namespace Cwm.HomeAssistant.ConfigTransformer.Services
         {
             // Arrange
             var transformer = new MqttSensorConfigTransformer(new DummyConfiguration());
-            var definition = new SensorDefinition
+            var definition = new SensorDeviceDefinition
             {
-                Name = "Test meter",
-                Type = new[] { "power-threshold" },
+                DeviceId = "Test meter",
                 Platform = "hubitat",
+                Sensors = new[] { new SensorDefinition { Type = "power-threshold" } },
             };
 
             // Action
@@ -580,12 +655,11 @@ namespace Cwm.HomeAssistant.ConfigTransformer.Services
         {
             // Arrange
             var transformer = new MqttSensorConfigTransformer(new DummyConfiguration());
-            var definition = new SensorDefinition
+            var definition = new SensorDeviceDefinition
             {
-                Name = "Test meter",
-                Type = new[] { "power-threshold" },
+                DeviceId = "Test meter",
                 Platform = "hubitat",
-                OnCondition = "< 5"
+                Sensors = new[] { new SensorDefinition { Type = "power-threshold", OnCondition = "< 5" } },
             };
             var expectedConfig = @"
 # Test meter, from hubitat via MQTT
