@@ -128,8 +128,6 @@ namespace Cwm.HomeAssistant.Config.Services
                 entity.Add($"  name: {sensor.Name}");
             }
 
-            entity.Add("  retain: true");
-
             if (sensor.Icon != null)
             {
                 customization.Add($"  icon: {sensor.Icon}");

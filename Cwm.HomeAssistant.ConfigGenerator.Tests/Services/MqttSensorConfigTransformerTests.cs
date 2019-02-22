@@ -171,7 +171,6 @@ binary_sensor.test_users_button:
 # Test multisensor battery, from hubitat via MQTT
 - platform: mqtt
   name: Test multisensor battery
-  retain: true
   device_class: battery
   state_topic: hubitat/Test multisensor/battery
   unit_of_measurement: '%'
@@ -210,7 +209,6 @@ binary_sensor.test_users_button:
 # Test button, from hubitat via MQTT
 - platform: mqtt
   name: Test button
-  retain: true
   state_topic: hubitat/Test button/1/push
   payload_on: pushed
   off_delay: 1
@@ -244,7 +242,6 @@ binary_sensor.test_users_button:
 # Test button 1, from hubitat via MQTT
 - platform: mqtt
   name: Test button 1
-  retain: true
   state_topic: hubitat/Test button/1/push
   payload_on: pushed
   off_delay: 1
@@ -252,7 +249,6 @@ binary_sensor.test_users_button:
 # Test button 2, from hubitat via MQTT
 - platform: mqtt
   name: Test button 2
-  retain: true
   state_topic: hubitat/Test button/2/push
   payload_on: pushed
   off_delay: 1
@@ -290,7 +286,6 @@ binary_sensor.test_users_button:
 # Test button (hold), from hubitat via MQTT
 - platform: mqtt
   name: Test button (hold)
-  retain: true
   state_topic: hubitat/Test button/1/hold
   payload_on: held
   off_delay: 1
@@ -324,7 +319,6 @@ binary_sensor.test_users_button:
 # Test button (hold), from hubitat via MQTT
 - platform: mqtt
   name: Test button (hold)
-  retain: true
   state_topic: hubitat/Test button/1/hold
   payload_on: held
   payload_off: released
@@ -362,7 +356,6 @@ binary_sensor.test_users_button:
 # Test contact, from hubitat via MQTT
 - platform: mqtt
   name: Test contact
-  retain: true
   state_topic: hubitat/Test contact/contact
   payload_on: open
   payload_off: closed
@@ -396,7 +389,6 @@ binary_sensor.test_users_button:
 # Test door, from hubitat via MQTT
 - platform: mqtt
   name: Test door
-  retain: true
   device_class: door
   state_topic: hubitat/Test door/contact
   payload_on: open
@@ -436,7 +428,6 @@ binary_sensor.test_users_button:
 # Test device illuminance, from hubitat via MQTT
 - platform: mqtt
   name: Test device illuminance
-  retain: true
   device_class: illuminance
   state_topic: hubitat/Test multisensor/illuminance
   unit_of_measurement: lux
@@ -476,7 +467,6 @@ binary_sensor.test_users_button:
 # Test device motion, from hubitat via MQTT
 - platform: mqtt
   name: Test device motion
-  retain: true
   device_class: motion
   state_topic: hubitat/Test multisensor/motion
   payload_on: active
@@ -516,7 +506,6 @@ binary_sensor.test_users_button:
 # Test device power, from hubitat via MQTT
 - platform: mqtt
   name: Test device power
-  retain: true
   state_topic: hubitat/Test meter/power
   unit_of_measurement: W
   force_update: true
@@ -554,7 +543,6 @@ binary_sensor.test_users_button:
 # Test presence, from hubitat via MQTT
 - platform: mqtt
   name: Test presence
-  retain: true
   device_class: presence
   state_topic: hubitat/Test presence/presence
   payload_on: present
@@ -594,7 +582,6 @@ binary_sensor.test_users_button:
 # Test device temperature, from hubitat via MQTT
 - platform: mqtt
   name: Test device temperature
-  retain: true
   device_class: temperature
   state_topic: hubitat/Test multisensor/temperature
   unit_of_measurement: °C
@@ -665,7 +652,6 @@ binary_sensor.test_users_button:
 # Test meter, from hubitat via MQTT
 - platform: mqtt
   name: Test meter
-  retain: true
   state_topic: hubitat/Test meter/power
   value_template: '{%if (value | float) < 5-%}on{%-else-%}off{%-endif%}'
   payload_on: 'on'

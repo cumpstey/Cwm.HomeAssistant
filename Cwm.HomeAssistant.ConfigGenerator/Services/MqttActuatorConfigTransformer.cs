@@ -168,7 +168,6 @@ namespace Cwm.HomeAssistant.Config.Services
 
             entity.Add("- platform: mqtt");
             entity.Add($"  name: {definition.Name}");
-            entity.Add("  retain: true");
 
             if (definition.Icon != null)
             {

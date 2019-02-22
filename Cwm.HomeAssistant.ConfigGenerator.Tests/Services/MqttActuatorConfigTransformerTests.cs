@@ -353,7 +353,6 @@ light.test_light:
 # Test heating, from genius via MQTT
 - platform: mqtt
   name: Test heating
-  retain: true
   modes:
   - auto
   - heat
@@ -397,7 +396,6 @@ light.test_light:
 # Test heating, from genius via MQTT
 - platform: mqtt
   name: Test heating
-  retain: true
   modes:
   - auto
   - heat
