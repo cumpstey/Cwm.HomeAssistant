@@ -1,10 +1,8 @@
-using Cwm.HomeAssistant.Config;
 using Cwm.HomeAssistant.Config.Exceptions;
 using Cwm.HomeAssistant.Config.Initializtion;
 using Cwm.HomeAssistant.Config.Models;
 using Cwm.HomeAssistant.Config.Services;
 using NUnit.Framework;
-using System.Collections.Generic;
 using System.Linq;
 
 namespace Cwm.HomeAssistant.ConfigTransformer.Services
@@ -13,11 +11,27 @@ namespace Cwm.HomeAssistant.ConfigTransformer.Services
     {
         #region General
 
+        [Test]
+        public void Missing_deviceId_throws()
+        {
+            // Arrange
+            var transformer = new MqttSensorConfigTransformer(new DummyConfiguration());
+            var definition = new DeviceDefinition
+            {
+                Name = "Test device",
+                Platform = "hubitat",
+                Sensors = new[] { new SensorDefinition { Type = "contact" } },
+            };
+
+            // Assert
+            Assert.Throws<ValidationException>(() => transformer.TransformConfig(definition));
+        }
+
         public void Unsupported_platform_throws(string type)
         {
             // Arrange
             var transformer = new MqttSensorConfigTransformer(new DummyConfiguration());
-            var definition = new SensorDeviceDefinition
+            var definition = new DeviceDefinition
             {
                 DeviceId = "Test device",
                 Platform = "unsupported",
@@ -33,7 +47,7 @@ namespace Cwm.HomeAssistant.ConfigTransformer.Services
         {
             // Arrange
             var transformer = new MqttSensorConfigTransformer(new DummyConfiguration());
-            var definition = new SensorDeviceDefinition
+            var definition = new DeviceDefinition
             {
                 DeviceId = "Test sensor",
                 Platform = "smartthings",
@@ -66,7 +80,7 @@ namespace Cwm.HomeAssistant.ConfigTransformer.Services
         {
             // Arrange
             var transformer = new MqttSensorConfigTransformer(new DummyConfiguration());
-            var definition = new SensorDeviceDefinition
+            var definition = new DeviceDefinition
             {
                 DeviceId = "Test multisensor",
                 Platform = "hubitat",
@@ -95,7 +109,7 @@ namespace Cwm.HomeAssistant.ConfigTransformer.Services
         {
             // Arrange
             var transformer = new MqttSensorConfigTransformer(new DummyConfiguration());
-            var definition = new SensorDeviceDefinition
+            var definition = new DeviceDefinition
             {
                 DeviceId = "Test multisensor",
                 Platform = "hubitat",
@@ -123,7 +137,7 @@ namespace Cwm.HomeAssistant.ConfigTransformer.Services
         {
             // Arrange
             var transformer = new MqttSensorConfigTransformer(new DummyConfiguration());
-            var definition = new SensorDeviceDefinition
+            var definition = new DeviceDefinition
             {
                 DeviceId = "Test user's button",
                 Platform = "hubitat",
@@ -160,7 +174,7 @@ binary_sensor.test_users_button:
         {
             // Arrange
             var transformer = new MqttSensorConfigTransformer(new DummyConfiguration());
-            var definition = new SensorDeviceDefinition
+            var definition = new DeviceDefinition
             {
                 DeviceId = "Test multisensor",
                 Platform = "hubitat",
@@ -199,7 +213,7 @@ binary_sensor.test_users_button:
         {
             // Arrange
             var transformer = new MqttSensorConfigTransformer(new DummyConfiguration());
-            var definition = new SensorDeviceDefinition
+            var definition = new DeviceDefinition
             {
                 DeviceId = "Test button",
                 Platform = "hubitat",
@@ -232,7 +246,7 @@ binary_sensor.test_users_button:
         {
             // Arrange
             var transformer = new MqttSensorConfigTransformer(new DummyConfiguration());
-            var definition = new SensorDeviceDefinition
+            var definition = new DeviceDefinition
             {
                 DeviceId = "Test button",
                 Platform = "hubitat",
@@ -276,7 +290,7 @@ binary_sensor.test_users_button:
         {
             // Arrange
             var transformer = new MqttSensorConfigTransformer(new DummyConfiguration());
-            var definition = new SensorDeviceDefinition
+            var definition = new DeviceDefinition
             {
                 DeviceId = "Test button",
                 Platform = "hubitat",
@@ -309,7 +323,7 @@ binary_sensor.test_users_button:
         {
             // Arrange
             var transformer = new MqttSensorConfigTransformer(new DummyConfiguration());
-            var definition = new SensorDeviceDefinition
+            var definition = new DeviceDefinition
             {
                 DeviceId = "Test button",
                 Platform = "hubitat",
@@ -346,7 +360,7 @@ binary_sensor.test_users_button:
         {
             // Arrange
             var transformer = new MqttSensorConfigTransformer(new DummyConfiguration());
-            var definition = new SensorDeviceDefinition
+            var definition = new DeviceDefinition
             {
                 DeviceId = "Test contact",
                 Platform = "hubitat",
@@ -379,7 +393,7 @@ binary_sensor.test_users_button:
         {
             // Arrange
             var transformer = new MqttSensorConfigTransformer(new DummyConfiguration());
-            var definition = new SensorDeviceDefinition
+            var definition = new DeviceDefinition
             {
                 DeviceId = "Test door",
                 Platform = "hubitat",
@@ -417,7 +431,7 @@ binary_sensor.test_users_button:
         {
             // Arrange
             var transformer = new MqttSensorConfigTransformer(new DummyConfiguration());
-            var definition = new SensorDeviceDefinition
+            var definition = new DeviceDefinition
             {
                 DeviceId = "Test multisensor",
                 Platform = "hubitat",
@@ -456,7 +470,7 @@ binary_sensor.test_users_button:
         {
             // Arrange
             var transformer = new MqttSensorConfigTransformer(new DummyConfiguration());
-            var definition = new SensorDeviceDefinition
+            var definition = new DeviceDefinition
             {
                 DeviceId = "Test multisensor",
                 Platform = "hubitat",
@@ -495,7 +509,7 @@ binary_sensor.test_users_button:
         {
             // Arrange
             var transformer = new MqttSensorConfigTransformer(new DummyConfiguration());
-            var definition = new SensorDeviceDefinition
+            var definition = new DeviceDefinition
             {
                 DeviceId = "Test meter",
                 Platform = "hubitat",
@@ -533,7 +547,7 @@ binary_sensor.test_users_button:
         {
             // Arrange
             var transformer = new MqttSensorConfigTransformer(new DummyConfiguration());
-            var definition = new SensorDeviceDefinition
+            var definition = new DeviceDefinition
             {
                 DeviceId = "Test presence",
                 Platform = "hubitat",
@@ -571,7 +585,7 @@ binary_sensor.test_users_button:
         {
             // Arrange
             var transformer = new MqttSensorConfigTransformer(new DummyConfiguration());
-            var definition = new SensorDeviceDefinition
+            var definition = new DeviceDefinition
             {
                 DeviceId = "Test device",
                 Platform = "hubitat",
@@ -607,7 +621,7 @@ binary_sensor.test_users_button:
         {
             // Arrange
             var transformer = new MqttSensorConfigTransformer(new DummyConfiguration());
-            var definition = new SensorDeviceDefinition
+            var definition = new DeviceDefinition
             {
                 DeviceId = "Test multisensor",
                 Platform = "hubitat",
@@ -646,7 +660,7 @@ binary_sensor.test_users_button:
         {
             // Arrange
             var transformer = new MqttSensorConfigTransformer(new DummyConfiguration());
-            var definition = new SensorDeviceDefinition
+            var definition = new DeviceDefinition
             {
                 DeviceId = "Test meter",
                 Platform = "hubitat",
@@ -654,7 +668,7 @@ binary_sensor.test_users_button:
             };
 
             // Action
-            Assert.Throws<MissingParameterException>(() => transformer.TransformConfig(definition));
+            Assert.Throws<ValidationException>(() => transformer.TransformConfig(definition));
         }
 
         [Test]
@@ -662,7 +676,7 @@ binary_sensor.test_users_button:
         {
             // Arrange
             var transformer = new MqttSensorConfigTransformer(new DummyConfiguration());
-            var definition = new SensorDeviceDefinition
+            var definition = new DeviceDefinition
             {
                 DeviceId = "Test meter",
                 Platform = "hubitat",
@@ -670,7 +684,7 @@ binary_sensor.test_users_button:
             };
 
             // Action
-            Assert.Throws<MissingParameterException>(() => transformer.TransformConfig(definition));
+            Assert.Throws<ValidationException>(() => transformer.TransformConfig(definition));
         }
 
         [Test]
@@ -678,7 +692,7 @@ binary_sensor.test_users_button:
         {
             // Arrange
             var transformer = new MqttSensorConfigTransformer(new DummyConfiguration());
-            var definition = new SensorDeviceDefinition
+            var definition = new DeviceDefinition
             {
                 DeviceId = "Test meter",
                 Platform = "hubitat",

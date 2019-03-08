@@ -11,6 +11,22 @@ namespace Cwm.HomeAssistant.ConfigTransformer.Services
     {
         #region General
 
+        [Test]
+        public void Missing_deviceId_throws()
+        {
+            // Arrange
+            var transformer = new MqttActuatorConfigTransformer(new DummyConfiguration());
+            var definition = new DeviceDefinition
+            {
+                Name = "Test device",
+                Platform = "hubitat",
+                Actuators = new[] { new ActuatorDefinition { Type = "switch" } },
+            };
+
+            // Assert
+            Assert.Throws<ValidationException>(() => transformer.TransformConfig(definition));
+        }
+
         [TestCase("switch")]
         [TestCase("light")]
         [TestCase("heating")]
@@ -18,11 +34,11 @@ namespace Cwm.HomeAssistant.ConfigTransformer.Services
         {
             // Arrange
             var transformer = new MqttActuatorConfigTransformer(new DummyConfiguration());
-            var definition = new ActuatorDefinition
+            var definition = new DeviceDefinition
             {
-                Name = "Test device",
-                Type = type,
+                DeviceId = "Test device",
                 Platform = "unsupported",
+                Actuators = new[] { new ActuatorDefinition { Type = type } },
             };
 
             // Assert
@@ -34,11 +50,11 @@ namespace Cwm.HomeAssistant.ConfigTransformer.Services
         {
             // Arrange
             var transformer = new MqttActuatorConfigTransformer(new DummyConfiguration());
-            var definition = new ActuatorDefinition
+            var definition = new DeviceDefinition
             {
-                Name = "Test switch",
-                Type = "switch",
+                DeviceId = "Test switch",
                 Platform = "smartthings",
+                Actuators = new[] { new ActuatorDefinition { Type = "switch" } },
             };
             var expectedPartialConfig = @"
   state_topic: this/is/a/test/Test switch/switch
@@ -67,11 +83,11 @@ namespace Cwm.HomeAssistant.ConfigTransformer.Services
         {
             // Arrange
             var transformer = new MqttActuatorConfigTransformer(new DummyConfiguration());
-            var definition = new ActuatorDefinition
+            var definition = new DeviceDefinition
             {
-                Name = "Test switch",
-                Type = "switch",
+                DeviceId = "Test switch",
                 Platform = "hubitat",
+                Actuators = new[] { new ActuatorDefinition { Type = "switch" } },
             };
             var expectedConfig = @"
 # Test switch, from hubitat via MQTT
@@ -102,12 +118,12 @@ namespace Cwm.HomeAssistant.ConfigTransformer.Services
         {
             // Arrange
             var transformer = new MqttActuatorConfigTransformer(new DummyConfiguration());
-            var definition = new ActuatorDefinition
+            var definition = new DeviceDefinition
             {
-                Name = "Test switch",
-                Type = "switch",
-                Platform = "zipato",
                 DeviceId = "abcd",
+                Name = "Test switch",
+                Platform = "zipato",
+                Actuators = new[] { new ActuatorDefinition { Type = "switch" } },
             };
             var expectedConfig = @"
 # Test switch, from zipato via MQTT
@@ -141,12 +157,11 @@ namespace Cwm.HomeAssistant.ConfigTransformer.Services
         {
             // Arrange
             var transformer = new MqttActuatorConfigTransformer(new DummyConfiguration());
-            var definition = new ActuatorDefinition
+            var definition = new DeviceDefinition
             {
-                Name = "Test switch",
-                Type = "switch",
+                DeviceId = "Test switch",
                 Platform = "hubitat",
-                Icon = "mdi:my-icon",
+                Actuators = new[] { new ActuatorDefinition { Type = "switch", Icon = "mdi:my-icon" } },
             };
             var expectedConfig = @"
 # Test switch, from hubitat via MQTT
@@ -185,11 +200,11 @@ switch.test_switch:
         {
             // Arrange
             var transformer = new MqttActuatorConfigTransformer(new DummyConfiguration());
-            var definition = new ActuatorDefinition
+            var definition = new DeviceDefinition
             {
-                Name = "Test light",
-                Type = "light",
+                DeviceId = "Test light",
                 Platform = "hubitat",
+                Actuators = new[] { new ActuatorDefinition { Type = "light" } },
             };
             var expectedConfig = @"
 # Test light, from hubitat via MQTT
@@ -220,12 +235,11 @@ switch.test_switch:
         {
             // Arrange
             var transformer = new MqttActuatorConfigTransformer(new DummyConfiguration());
-            var definition = new ActuatorDefinition
+            var definition = new DeviceDefinition
             {
-                Name = "Test light",
-                Type = "light",
+                DeviceId = "Test light",
                 Platform = "hubitat",
-                Icon="mdi:my-icon",
+                Actuators = new[] { new ActuatorDefinition { Type = "light", Icon = "mdi:my-icon" } },
             };
             var expectedConfig = @"
 # Test light, from hubitat via MQTT
@@ -260,11 +274,11 @@ light.test_light:
         {
             // Arrange
             var transformer = new MqttActuatorConfigTransformer(new DummyConfiguration());
-            var definition = new ActuatorDefinition
+            var definition = new DeviceDefinition
             {
-                Name = "Test light",
-                Type = "dimmable-light",
+                DeviceId = "Test light",
                 Platform = "hubitat",
+                Actuators = new[] { new ActuatorDefinition { Type = "dimmable-light" } },
             };
             var expectedConfig = @"
 # Test light, from hubitat via MQTT
@@ -298,11 +312,11 @@ light.test_light:
         {
             // Arrange
             var transformer = new MqttActuatorConfigTransformer(new DummyConfiguration());
-            var definition = new ActuatorDefinition
+            var definition = new DeviceDefinition
             {
-                Name = "Test light",
-                Type = "rgbw-light",
+                DeviceId = "Test light",
                 Platform = "hubitat",
+                Actuators = new[] { new ActuatorDefinition { Type = "rgbw-light" } },
             };
             var expectedConfig = @"
 # Test light, from hubitat via MQTT
@@ -342,12 +356,12 @@ light.test_light:
         {
             // Arrange
             var transformer = new MqttActuatorConfigTransformer(new DummyConfiguration());
-            var definition = new ActuatorDefinition
+            var definition = new DeviceDefinition
             {
-                Name = "Test heating",
-                Type = "heating",
-                Platform = "genius",
                 DeviceId = "Test room",
+                Name = "Test heating",
+                Platform = "genius",
+                Actuators = new[] { new ActuatorDefinition { Type = "heating" } },
             };
             var expectedConfig = @"
 # Test heating, from genius via MQTT
@@ -384,13 +398,12 @@ light.test_light:
         {
             // Arrange
             var transformer = new MqttActuatorConfigTransformer(new DummyConfiguration());
-            var definition = new ActuatorDefinition
+            var definition = new DeviceDefinition
             {
-                Name = "Test heating",
-                Type = "heating",
-                Platform = "genius",
                 DeviceId = "Test room",
-                Icon = "mdi:my-icon",
+                Name = "Test heating",
+                Platform = "genius",
+                Actuators = new[] { new ActuatorDefinition { Type = "heating", Icon = "mdi:my-icon" } },
             };
             var expectedConfig = @"
 # Test heating, from genius via MQTT

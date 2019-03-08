@@ -1,29 +1,20 @@
 ﻿namespace Cwm.HomeAssistant.Config.Models
 {
+    /// <summary>
+    /// Class representing an actuator belonging to a device.
+    /// </summary>
+    /// <seealso cref="DeviceDefinition"/>
+    /// <seealso cref="SensorDefinition"/>
     public class ActuatorDefinition
     {
-        #region Fields
-
-        private string _deviceId;
-
-        #endregion
-
-        #region Properties
-
-        public string Name { get; set; }
-
-        public string Platform { get; set; }
-
-        public string DeviceId
-        {
-            get { return _deviceId ?? Name; }
-            set { _deviceId = value; }
-        }
-
+        /// <summary>
+        /// Type of the actuator.
+        /// </summary>
         public string Type { get; set; }
 
+        /// <summary>
+        /// Icon which should be used for the entity in Home Assistant.
+        /// </summary>
         public string Icon { get; set; }
-     
-        #endregion
     }
 }

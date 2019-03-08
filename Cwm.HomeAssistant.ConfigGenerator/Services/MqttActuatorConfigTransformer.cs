@@ -6,6 +6,10 @@ using System.Linq;
 
 namespace Cwm.HomeAssistant.Config.Services
 {
+    /// <summary>
+    /// Class providing functionality to generate Home Assistant configuration for
+    /// actuator devices.
+    /// </summary>
     public class MqttActuatorConfigTransformer : ConfigTransformer
     {
         #region Fields
@@ -16,32 +20,48 @@ namespace Cwm.HomeAssistant.Config.Services
 
         #region Constructor
 
+        /// <summary>
+        /// Initializes a new instance of the <see cref="MqttActuatorConfigTransformer"/> class.
+        /// </summary>
+        /// <param name="configuration">Required configuration</param>
         public MqttActuatorConfigTransformer(IMqttConfigGeneratorConfiguration configuration)
         {
-            _configuration = configuration;
+            _configuration = configuration ?? throw new ArgumentNullException(nameof(configuration));
         }
 
         #endregion
 
         #region Methods
 
-        public KeyedCollection<ConfigEntry> TransformConfig(ActuatorDefinition definition)
+        /// <summary>
+        /// Generate Home Assistant configuration file entries for the actuators in the provided device.
+        /// </summary>
+        /// <param name="definition">Device properties</param>
+        /// <returns>Configuration file entries covering all actuators defined in the device</returns>
+        public KeyedCollection<ConfigEntry> TransformConfig(DeviceDefinition definition)
         {
+            if (definition.Actuators == null)
+            {
+                return new KeyedCollection<ConfigEntry>();
+            }
+
+            if (string.IsNullOrWhiteSpace(definition.DeviceId))
+            {
+                throw new ValidationException($"{nameof(definition.DeviceId)} requires a value.");
+            }
+
             var configs = new KeyedCollection<ConfigEntry>();
-            if (definition.Type == "light" || definition.Type.EndsWith("-light"))
+            foreach (var actuator in definition.Actuators)
             {
-                var config = FormatLightDefinition(definition);
-                configs.Add("light", config);
-            }
-            else if (definition.Type == "switch")
-            {
-                var config = FormatSwitchDefinition(definition);
-                configs.Add("switch", config);
-            }
-            else if (definition.Type == "heating")
-            {
-                var config = FormatHeatingDefinition(definition);
-                configs.Add("climate", config);
+                var config = FormatActuatorDefinition(new ActuatorConfig
+                {
+                    Type = actuator.Type,
+                    Name = definition.Name,
+                    Platform = definition.Platform,
+                    DeviceId = definition.DeviceId,
+                    Icon = actuator.Icon,
+                });
+                configs.Add(config.Key, config.Value);
             }
 
             return configs;
@@ -51,7 +71,28 @@ namespace Cwm.HomeAssistant.Config.Services
 
         #region Helpers
 
-        private ConfigEntry FormatLightDefinition(ActuatorDefinition definition)
+        private KeyValuePair<string, ConfigEntry> FormatActuatorDefinition(ActuatorConfig definition)
+        {
+            if (definition.Type == "light" || definition.Type.EndsWith("-light"))
+            {
+                var config = FormatLightDefinition(definition);
+                return new KeyValuePair<string, ConfigEntry>("light", config);
+            }
+            else if (definition.Type == "switch")
+            {
+                var config = FormatSwitchDefinition(definition);
+                return new KeyValuePair<string, ConfigEntry>("switch", config);
+            }
+            else if (definition.Type == "heating")
+            {
+                var config = FormatHeatingDefinition(definition);
+                return new KeyValuePair<string, ConfigEntry>("climate", config);
+            }
+
+            throw new UnrecognizedTypeException(definition.Type);
+        }
+
+        private ConfigEntry FormatLightDefinition(ActuatorConfig definition)
         {
             var entity = new List<string>();
             var customization = new List<string>();
@@ -107,7 +148,7 @@ namespace Cwm.HomeAssistant.Config.Services
             };
         }
 
-        private ConfigEntry FormatSwitchDefinition(ActuatorDefinition definition)
+        private ConfigEntry FormatSwitchDefinition(ActuatorConfig definition)
         {
             var entity = new List<string>();
             var customization = new List<string>();
@@ -159,7 +200,7 @@ namespace Cwm.HomeAssistant.Config.Services
             };
         }
 
-        private ConfigEntry FormatHeatingDefinition(ActuatorDefinition definition)
+        private ConfigEntry FormatHeatingDefinition(ActuatorConfig definition)
         {
             var entity = new List<string>();
             var customization = new List<string>();

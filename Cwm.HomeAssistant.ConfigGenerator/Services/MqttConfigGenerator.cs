@@ -7,12 +7,21 @@ using System.Linq;
 
 namespace Cwm.HomeAssistant.Config.Services
 {
+    /// <summary>
+    /// Class providing functionality to update Home Assistant configuration files.
+    /// </summary>
     public class MqttConfigGenerator
     {
         #region Fields
 
+        /// <summary>
+        /// String showing the beginning of the section of the config file which will be updated.
+        /// </summary>
         const string SectionStartFormat = "### MQTT {0} ###";
 
+        /// <summary>
+        /// String showing the end of the section of the config file which will be updated.
+        /// </summary>
         const string SectionEndFormat = "### end MQTT {0} ###";
 
         private readonly MqttActuatorConfigTransformer _actuatorTransformer;
@@ -23,6 +32,11 @@ namespace Cwm.HomeAssistant.Config.Services
 
         #region Constructor
 
+        /// <summary>
+        /// Initializes a new instance of the <see cref="MqttConfigGenerator"/> class.
+        /// </summary>
+        /// <param name="actuatorTransformer"></param>
+        /// <param name="sensorTransformer"></param>
         public MqttConfigGenerator(MqttActuatorConfigTransformer actuatorTransformer, MqttSensorConfigTransformer sensorTransformer)
         {
             _actuatorTransformer = actuatorTransformer;
@@ -33,36 +47,19 @@ namespace Cwm.HomeAssistant.Config.Services
 
         #region Methods
 
-        public void TransformActuatorConfig(string inputFile, string outputDirectory)
+        public void GenerateConfig(string inputFile, string outputDirectory)
         {
             var definitionJson = File.ReadAllText(inputFile);
-            var definitions = JsonConvert.DeserializeObject<IReadOnlyList<ActuatorDefinition>>(definitionJson);
+            var definitions = JsonConvert.DeserializeObject<IReadOnlyList<DeviceDefinition>>(definitionJson);
 
             var configs = new KeyedCollection<ConfigEntry>();
             foreach (var definition in definitions)
             {
                 configs.Add(_actuatorTransformer.TransformConfig(definition));
-            }
-
-            foreach (var key in configs.Keys)
-            {
-                WriteToConfigFile(key, configs[key].Select(i => i.Entity).ToArray(), Path.Join(outputDirectory, $"{key}.yaml"));
-                WriteToConfigFile(key, configs[key].Select(i => i.Customization).Where(i => i.Any()).ToArray(), Path.Join(outputDirectory, $"customize.yaml"));
-            }
-        }
-
-        public void TransformSensorConfig(string inputFile, string outputDirectory)
-        {
-            var definitionJson = File.ReadAllText(inputFile);
-            var definitions = JsonConvert.DeserializeObject<IReadOnlyList<SensorDeviceDefinition>>(definitionJson);
-
-            var configs = new KeyedCollection<ConfigEntry>();
-            foreach(var definition in definitions)
-            {
                 configs.Add(_sensorTransformer.TransformConfig(definition));
             }
 
-            foreach(var key in configs.Keys)
+            foreach (var key in configs.Keys)
             {
                 WriteToConfigFile(key, configs[key].Select(i => i.Entity).ToArray(), Path.Join(outputDirectory, $"{key}.yaml"));
                 WriteToConfigFile(key, configs[key].Select(i => i.Customization).Where(i => i.Any()).ToArray(), Path.Join(outputDirectory, $"customize.yaml"));

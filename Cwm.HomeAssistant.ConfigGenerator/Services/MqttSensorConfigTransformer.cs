@@ -7,6 +7,10 @@ using System.Text.RegularExpressions;
 
 namespace Cwm.HomeAssistant.Config.Services
 {
+    /// <summary>
+    /// Class providing functionality to generate Home Assistant configuration for
+    /// sensor devices.
+    /// </summary>
     public class MqttSensorConfigTransformer : ConfigTransformer
     {
         #region Fields
@@ -17,20 +21,34 @@ namespace Cwm.HomeAssistant.Config.Services
 
         #region Constructor
 
+        /// <summary>
+        /// Initializes a new instance of the <see cref="MqttSensorConfigTransformer"/> class.
+        /// </summary>
+        /// <param name="configuration">Required configuration</param>
         public MqttSensorConfigTransformer(IMqttConfigGeneratorConfiguration configuration)
         {
-            _configuration = configuration;
+            _configuration = configuration ?? throw new ArgumentNullException(nameof(configuration));
         }
 
         #endregion
 
         #region Methods
 
-        public KeyedCollection<ConfigEntry> TransformConfig(SensorDeviceDefinition definition)
+        /// <summary>
+        /// Generate Home Assistant configuration file entries for the sensors in the provided device.
+        /// </summary>
+        /// <param name="definition">Device properties</param>
+        /// <returns>Configuration file entries covering all sensors defined in the device</returns>
+        public KeyedCollection<ConfigEntry> TransformConfig(DeviceDefinition definition)
         {
             if (definition.Sensors == null)
             {
                 return new KeyedCollection<ConfigEntry>();
+            }
+
+            if (string.IsNullOrWhiteSpace(definition.DeviceId))
+            {
+                throw new ValidationException($"{nameof(definition.DeviceId)} requires a value.");
             }
 
             var configs = new KeyedCollection<ConfigEntry>();
@@ -50,12 +68,12 @@ namespace Cwm.HomeAssistant.Config.Services
 
                     if (string.IsNullOrWhiteSpace(attribute))
                     {
-                        throw new MissingParameterException("Threshold attribute is missing");
+                        throw new ValidationException("Threshold attribute is missing");
                     }
 
                     if (string.IsNullOrWhiteSpace(sensor.OnCondition))
                     {
-                        throw new MissingParameterException("Threshold on condition is missing");
+                        throw new ValidationException("Threshold on condition is missing");
                     }
 
                     var config = FormatSensorDefinition(EntityType.BinarySensor, new SensorConfig
@@ -147,7 +165,7 @@ namespace Cwm.HomeAssistant.Config.Services
             };
         }
 
-        private IReadOnlyCollection<ConfigEntry> ProcessButtonDefinition(SensorDefinition sensor, SensorDeviceDefinition definition)
+        private IReadOnlyCollection<ConfigEntry> ProcessButtonDefinition(SensorDefinition sensor, DeviceDefinition definition)
         {
             if (sensor.Type == "hold-button")
             {
