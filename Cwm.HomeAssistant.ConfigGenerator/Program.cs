@@ -10,7 +10,7 @@ namespace Cwm.HomeAssistant.Config
         {
             var configuration = new AppSettingsReader().GenerateConfiguration();
 
-            var mqttDeviceInputFile = Path.Combine(configuration.SourceFolder, "mqtt-devices.json");
+            //var mqttDeviceInputFile = Path.Combine(configuration.SourceFolder, "mqtt-devices.json");
             //var mqttActuatorInputFile = Path.Combine(configuration.SourceFolder, "mqtt-actuators.json");
             //var mqttSensorInputFile = Path.Combine(configuration.SourceFolder, "mqtt-sensors.json");
 
@@ -18,7 +18,7 @@ namespace Cwm.HomeAssistant.Config
                 new MqttActuatorConfigTransformer(configuration),
                 new MqttSensorConfigTransformer(configuration));
             //mqttConfigGenerator.TransformActuatorConfig(mqttDeviceInputFile, configuration.OutputFolder);
-            mqttConfigGenerator.GenerateConfig(mqttDeviceInputFile, configuration.OutputFolder);
+            mqttConfigGenerator.GenerateConfig(configuration.SourceFolder, configuration.OutputFolder);
         }
     }
 }

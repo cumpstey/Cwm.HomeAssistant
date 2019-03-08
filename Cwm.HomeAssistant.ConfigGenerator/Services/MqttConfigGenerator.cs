@@ -4,6 +4,8 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using YamlDotNet.Serialization;
+using YamlDotNet.Serialization.NamingConventions;
 
 namespace Cwm.HomeAssistant.Config.Services
 {
@@ -47,10 +49,30 @@ namespace Cwm.HomeAssistant.Config.Services
 
         #region Methods
 
-        public void GenerateConfig(string inputFile, string outputDirectory)
+        /// <summary>
+        /// Reads all device definition files from the source directory,
+        /// generates Home Assistant entity configurations, and writes
+        /// these to the config files in the output directory.
+        /// </summary>
+        /// <param name="sourceDirectory">Directory containig device definition files</param>
+        /// <param name="outputDirectory">Directory containing Home Assistant config files</param>
+        public void GenerateConfig(string sourceDirectory, string outputDirectory)
         {
-            var definitionJson = File.ReadAllText(inputFile);
-            var definitions = JsonConvert.DeserializeObject<IReadOnlyList<DeviceDefinition>>(definitionJson);
+            var files = Directory.EnumerateFiles(sourceDirectory, "*.yaml");
+            var definitions = new List<DeviceDefinition>();
+            foreach (var file in files)
+            {
+                var fileContent = File.ReadAllText(file);
+
+                var deserializer = new DeserializerBuilder()
+                    .WithNamingConvention(new CamelCaseNamingConvention())
+                    .Build();
+                var fileDefinitions = deserializer.Deserialize<DeviceDefinition[]>(fileContent);
+
+                //var fileDefinitions = JsonConvert.DeserializeObject<IReadOnlyList<DeviceDefinition>>(fileContent);
+
+                definitions.AddRange(fileDefinitions);
+            }
 
             var configs = new KeyedCollection<ConfigEntry>();
             foreach (var definition in definitions)
