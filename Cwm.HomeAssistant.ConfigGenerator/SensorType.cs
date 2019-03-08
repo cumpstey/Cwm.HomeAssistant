@@ -16,6 +16,8 @@
 
         public const string Presence = "presence";
 
+        public const string Scene = "scene";
+
         public const string Temperature = "temperature";
 
         public const string Threshold = "threshold";

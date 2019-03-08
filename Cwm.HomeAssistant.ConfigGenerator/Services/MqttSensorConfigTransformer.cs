@@ -272,6 +272,10 @@ namespace Cwm.HomeAssistant.Config.Services
                         entity.Add("  payload_on: present");
                         entity.Add("  payload_off: not present");
                         break;
+                    case SensorType.Scene:
+                        entity.Add($"  state_topic: {prefix}/{sensor.DeviceId}/scene");
+                        entity.Add("  force_update: true");
+                        break;
                     case SensorType.Temperature:
                         entity.Add($"  device_class: {sensor.DeviceClass ?? "temperature"}");
                         entity.Add($"  state_topic: {prefix}/{sensor.DeviceId}/temperature");

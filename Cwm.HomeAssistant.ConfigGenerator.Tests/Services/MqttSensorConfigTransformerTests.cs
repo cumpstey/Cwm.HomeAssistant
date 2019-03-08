@@ -564,6 +564,42 @@ binary_sensor.test_users_button:
 
         #endregion
 
+        #region Scene
+
+        [Test]
+        public void Scene_sensor_config_is_generated()
+        {
+            // Arrange
+            var transformer = new MqttSensorConfigTransformer(new DummyConfiguration());
+            var definition = new SensorDeviceDefinition
+            {
+                DeviceId = "Test device",
+                Platform = "hubitat",
+                Sensors = new[] { new SensorDefinition { Type = "scene" } },
+            };
+            var expectedConfig = @"
+# Test device scene, from hubitat via MQTT
+- platform: mqtt
+  name: Test device scene
+  state_topic: hubitat/Test device/scene
+  force_update: true
+".Trim();
+
+            // Action
+            var result = transformer.TransformConfig(definition);
+
+            // Assert
+            Assert.AreEqual(1, result.Keys.Count, "One entity type returned");
+            Assert.AreEqual("sensor", result.Keys.First(), "The type of the entity returned is correct");
+            Assert.AreEqual(1, result["sensor"].Count, "Only one entity returned");
+
+            var config = result["sensor"].First();
+            Assert.AreEqual(expectedConfig, config.Entity, "Config declared as expected");
+            Assert.IsEmpty(config.Customization, "Customization declared as expected");
+        }
+
+        #endregion
+
         #region Temperature
 
         [Test]
