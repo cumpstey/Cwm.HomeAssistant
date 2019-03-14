@@ -463,6 +463,44 @@ binary_sensor.test_users_button:
 
         #endregion
 
+        #region Moisture
+
+        [Test]
+        public void Moisture_sensor_config_is_generated()
+        {
+            // Arrange
+            var transformer = new MqttSensorConfigTransformer(new DummyConfiguration());
+            var definition = new DeviceDefinition
+            {
+                DeviceId = "Test flood",
+                Platform = "hubitat",
+                Sensors = new[] { new SensorDefinition { Type = "moisture" } },
+            };
+            var expectedConfig = @"
+# Test flood, from hubitat via MQTT
+- platform: mqtt
+  name: Test flood
+  device_class: moisture
+  state_topic: hubitat/Test flood/water
+  payload_on: wet
+  payload_off: dry
+".Trim();
+
+            // Action
+            var result = transformer.TransformConfig(definition);
+
+            // Assert
+            Assert.AreEqual(1, result.Keys.Count, "One entity type returned");
+            Assert.AreEqual("binary_sensor", result.Keys.First(), "The type of the entity returned is correct");
+            Assert.AreEqual(1, result["binary_sensor"].Count, "Only one entity returned");
+
+            var config = result["binary_sensor"].First();
+            Assert.AreEqual(expectedConfig, config.Entity, "Config declared as expected");
+            Assert.IsEmpty(config.Customization, "Customization declared as expected");
+        }
+
+        #endregion
+
         #region Motion
 
         [Test]

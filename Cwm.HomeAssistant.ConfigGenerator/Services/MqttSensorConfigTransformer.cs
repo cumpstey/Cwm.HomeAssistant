@@ -109,7 +109,7 @@ namespace Cwm.HomeAssistant.Config.Services
                 else
                 {
                     // Figure out whether it should be a binary sensor
-                    var entityType = new[] { SensorType.Button, SensorType.Contact, SensorType.Motion, SensorType.Presence }.Contains(sensor.Type)
+                    var entityType = new[] { SensorType.Button, SensorType.Contact, SensorType.Moisture, SensorType.Motion, SensorType.Presence }.Contains(sensor.Type)
                         ? EntityType.BinarySensor : EntityType.Sensor;
 
                     // Generate a reasonably human-friendly name, depending on the type of sensor.
@@ -117,7 +117,7 @@ namespace Cwm.HomeAssistant.Config.Services
                             ? $"{definition.DeviceId} battery"
                         : sensor.Type == SensorType.PowerCycle
                             ? $"{definition.Name} cycle"
-                        : new[] { SensorType.Button, SensorType.Contact, SensorType.Presence }.Contains(sensor.Type)
+                        : new[] { SensorType.Button, SensorType.Contact, SensorType.Moisture, SensorType.Presence }.Contains(sensor.Type)
                             ? definition.Name
                         : $"{definition.Name} {sensor.Type}";
 
@@ -328,6 +328,12 @@ namespace Cwm.HomeAssistant.Config.Services
                         entity.Add($"  state_topic: {prefix}/{sensor.DeviceId}/illuminance");
                         entity.Add("  unit_of_measurement: lux");
                         entity.Add("  force_update: true");
+                        break;
+                    case SensorType.Moisture:
+                        entity.Add($"  device_class: {sensor.DeviceClass ?? "moisture"}");
+                        entity.Add($"  state_topic: {prefix}/{sensor.DeviceId}/water");
+                        entity.Add("  payload_on: wet");
+                        entity.Add("  payload_off: dry");
                         break;
                     case SensorType.Motion:
                         entity.Add($"  device_class: {sensor.DeviceClass ?? "motion"}");

@@ -26,6 +26,11 @@
         public const string Illuminance = "illuminance";
 
         /// <summary>
+        /// Moisture sensor.
+        /// </summary>
+        public const string Moisture = "moisture";
+
+        /// <summary>
         /// Motion sensor.
         /// </summary>
         public const string Motion = "motion";
