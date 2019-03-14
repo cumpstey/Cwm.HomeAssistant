@@ -36,6 +36,16 @@
         public const string Power = "power";
 
         /// <summary>
+        /// Cycle sensor for washing machine etc based on power usage.
+        /// </summary>
+        public const string PowerCycle = "power-cycle";
+
+        /// <summary>
+        /// Binary sensor for washing machine etc based on power cycle.
+        /// </summary>
+        public const string PowerCycleOnOff = "power-cycle-onoff";
+
+        /// <summary>
         /// Presence sensor.
         /// </summary>
         public const string Presence = "presence";

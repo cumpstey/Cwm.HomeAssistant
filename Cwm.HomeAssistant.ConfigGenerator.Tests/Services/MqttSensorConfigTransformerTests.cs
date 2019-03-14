@@ -538,6 +538,96 @@ binary_sensor.test_users_button:
             Assert.IsEmpty(config.Customization, "Customization declared as expected");
         }
 
+        [Test]
+        public void Power_cycle_sensor_config_is_generated()
+        {
+            // Arrange
+            var transformer = new MqttSensorConfigTransformer(new DummyConfiguration());
+            var definition = new DeviceDefinition
+            {
+                DeviceId = "Test meter",
+                Platform = "hubitat",
+                Name = "Test device",
+                Sensors = new[] { new SensorDefinition { Type = "power-cycle" } },
+            };
+            var expectedConfig = @"
+# Test device cycle, from homeassistant via MQTT
+- platform: mqtt
+  name: Test device cycle
+  state_topic: homeassistant/Test device/cycle
+".Trim();
+
+            // Action
+            var result = transformer.TransformConfig(definition);
+
+            // Assert
+            Assert.AreEqual(1, result.Keys.Count, "One entity type returned");
+            Assert.AreEqual("sensor", result.Keys.First(), "The type of the entity returned is correct");
+            Assert.AreEqual(1, result["sensor"].Count, "Only one entity returned");
+
+            var config = result["sensor"].First();
+            Assert.AreEqual(expectedConfig, config.Entity, "Config declared as expected");
+            Assert.IsEmpty(config.Customization, "Customization declared as expected");
+        }
+
+        [Test]
+        public void Missing_power_cycle_sensor_throws()
+        {
+            // Arrange
+            var transformer = new MqttSensorConfigTransformer(new DummyConfiguration());
+            var definition = new DeviceDefinition
+            {
+                DeviceId = "Test meter",
+                Platform = "hubitat",
+                Name = "Test device",
+                Sensors = new[] { new SensorDefinition { Type = "power-cycle-onoff" } },
+            };
+
+            // Assert
+            Assert.Throws<ValidationException>(() => transformer.TransformConfig(definition));
+        }
+
+        [Test]
+        public void Power_cycle_onoff_sensor_config_is_generated()
+        {
+            // Arrange
+            var transformer = new MqttSensorConfigTransformer(new DummyConfiguration());
+            var definition = new DeviceDefinition
+            {
+                DeviceId = "Test meter",
+                Platform = "hubitat",
+                Name = "Test device",
+                Sensors = new[] {
+                    new SensorDefinition { Type = "power-cycle" },
+                    new SensorDefinition { Type = "power-cycle-onoff" },
+                },
+            };
+            var expectedConfig = @"
+# Test device
+- platform: template
+  sensors:
+    test_device:
+      value_template: >
+        {{states.sensor.test_device_cycle.state not in ['unknown','off']}}
+".Trim();
+            var expectedCustomization = @"
+binary_sensor.test_device:
+  friendly_name: Test device
+".Trim();
+
+            // Action
+            var result = transformer.TransformConfig(definition);
+
+            // Assert
+            // We don't care about the sensor here - that's tested elsewhere. Just look at the binary_sensor.
+            Assert.IsTrue(result.ContainsKey("binary_sensor"), "Expected entity type is returned");
+            Assert.AreEqual(1, result["binary_sensor"].Count, "Only one entity returned");
+
+            var config = result["binary_sensor"].First();
+            Assert.AreEqual(expectedConfig, config.Entity, "Config declared as expected");
+            Assert.AreEqual(expectedCustomization, config.Customization, "Customization declared as expected");
+        }
+
         #endregion
 
         #region Presence

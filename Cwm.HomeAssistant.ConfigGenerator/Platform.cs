@@ -11,6 +11,11 @@
         public const string Genius = "genius";
 
         /// <summary>
+        /// Home Assistant - for sensors set internally by automations or scripts.
+        /// </summary>
+        public const string HomeAssistant = "homeassistant";
+
+        /// <summary>
         /// Hubitat: https://hubitat.com/
         /// </summary>
         public const string Hubitat = "hubitat";

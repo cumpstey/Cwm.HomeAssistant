@@ -29,6 +29,11 @@
         public string DeviceId { get; set; }
 
         /// <summary>
+        /// Name of the device within Home Assistant.
+        /// </summary>
+        public string DeviceName { get; set; }
+
+        /// <summary>
         /// Icon which should be used for the entity in Home Assistant.
         /// </summary>
         public string Icon { get; set; }

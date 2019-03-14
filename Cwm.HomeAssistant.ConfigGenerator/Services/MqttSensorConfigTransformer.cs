@@ -82,10 +82,27 @@ namespace Cwm.HomeAssistant.Config.Services
                         Name = definition.Name,
                         Platform = definition.Platform,
                         DeviceId = definition.DeviceId,
+                        DeviceName = definition.Name,
                         DeviceClass = sensor.DeviceClass,
                         Icon = sensor.Icon,
                         ThresholdAttribute = attribute,
                         ThresholdOnCondition = sensor.OnCondition,
+                    });
+                    configs.Add(EntityType.BinarySensor, config);
+                }
+                else if (sensor.Type == SensorType.PowerCycleOnOff)
+                {
+                    if (!definition.Sensors.Any(i => i.Type == SensorType.PowerCycle))
+                    {
+                        throw new ValidationException("Can't have a power cycle on-off sensor without a power cycle sensor.");
+                    }
+
+                    var cycleSensorName = $"{definition.Name} cycle";
+                    var config = FormatTemplateDefinition(EntityType.BinarySensor, new TemplateSensorConfig
+                    {
+                        Name = definition.Name,
+                        Icon = sensor.Icon,
+                        ValueTemplate = $"states.sensor.{FormatAsId(cycleSensorName)}.state not in ['unknown','off']",
                     });
                     configs.Add(EntityType.BinarySensor, config);
                 }
@@ -97,17 +114,25 @@ namespace Cwm.HomeAssistant.Config.Services
 
                     // Generate a reasonably human-friendly name, depending on the type of sensor.
                     var name = sensor.Type == SensorType.Battery
-                        ? $"{definition.DeviceId} battery"
+                            ? $"{definition.DeviceId} battery"
+                        : sensor.Type == SensorType.PowerCycle
+                            ? $"{definition.Name} cycle"
                         : new[] { SensorType.Button, SensorType.Contact, SensorType.Presence }.Contains(sensor.Type)
                             ? definition.Name
-                            : $"{definition.Name} {sensor.Type}";
+                        : $"{definition.Name} {sensor.Type}";
+
+                    // Identify sensors which are set by Home Assistant
+                    var platform = new[] { SensorType.PowerCycle }.Contains(sensor.Type)
+                        ? Platform.HomeAssistant
+                        : definition.Platform;
 
                     var config = FormatSensorDefinition(entityType, new SensorConfig
                     {
                         Type = sensor.Type,
                         Name = name,
-                        Platform = definition.Platform,
+                        Platform = platform,
                         DeviceId = definition.DeviceId,
+                        DeviceName = definition.Name,
                         DeviceClass = sensor.DeviceClass,
                         Icon = sensor.Icon,
                     });
@@ -125,7 +150,7 @@ namespace Cwm.HomeAssistant.Config.Services
         private ConfigEntry FormatDefinition(Action<List<string>> addConfig, string entityType, SensorConfig sensor)
         {
             // TODO: Accept Genius sensors
-            if (sensor.Platform != Platform.Hubitat && sensor.Platform != Platform.SmartThings)
+            if (!new[] { Platform.HomeAssistant, Platform.Hubitat, Platform.SmartThings }.Contains(sensor.Platform))
             {
                 throw new UnsupportedPlatformException(sensor.Platform, $"sensor:{sensor.Type}");
             }
@@ -165,6 +190,39 @@ namespace Cwm.HomeAssistant.Config.Services
             };
         }
 
+        private ConfigEntry FormatTemplateDefinition(string entityType, TemplateSensorConfig sensor)
+        {
+            var entity = new List<string>();
+            var customization = new List<string>();
+
+            entity.Add($"# {sensor.Name}");
+            entity.Add("- platform: template");
+            entity.Add("  sensors:");
+            entity.Add($"    {FormatAsId(sensor.Name)}:");
+            entity.Add($"      value_template: >");
+            entity.Add($"        {{{{{sensor.ValueTemplate}}}}}");
+
+            //entity.Add($"      friendly_name:{FormatAsId(sensor.Name)}:");
+
+            customization.Add($"  friendly_name: {sensor.Name}");
+
+            if (sensor.Icon != null)
+            {
+                customization.Add($"  icon: {sensor.Icon}");
+            }
+
+            if (customization.Any())
+            {
+                customization.Insert(0, $@"{entityType}.{FormatAsId(sensor.Name)}:");
+            }
+
+            return new ConfigEntry
+            {
+                Entity = string.Join(Environment.NewLine, entity),
+                Customization = string.Join(Environment.NewLine, customization),
+            };
+        }
+
         private IReadOnlyCollection<ConfigEntry> ProcessButtonDefinition(SensorDefinition sensor, DeviceDefinition definition)
         {
             if (sensor.Type == "hold-button")
@@ -183,6 +241,7 @@ namespace Cwm.HomeAssistant.Config.Services
                         Name = $"{definition.Name} (hold)",
                         Platform = definition.Platform,
                         DeviceId = definition.DeviceId,
+                        DeviceName = definition.Name,
                         DeviceClass = sensor.DeviceClass,
                         Icon = sensor.Icon,
                     })
@@ -204,6 +263,7 @@ namespace Cwm.HomeAssistant.Config.Services
                         Name = $"{definition.Name} (hold)",
                         Platform = definition.Platform,
                         DeviceId = definition.DeviceId,
+                        DeviceName=definition.Name,
                         DeviceClass = sensor.DeviceClass,
                         Icon = sensor.Icon,
                     })
@@ -229,6 +289,7 @@ namespace Cwm.HomeAssistant.Config.Services
                         Name = name,
                         Platform = definition.Platform,
                         DeviceId = definition.DeviceId,
+                        DeviceName = definition.Name,
                         DeviceClass = sensor.DeviceClass,
                         Icon = sensor.Icon,
                     }));
@@ -283,6 +344,9 @@ namespace Cwm.HomeAssistant.Config.Services
                         entity.Add($"  state_topic: {prefix}/{sensor.DeviceId}/power");
                         entity.Add("  unit_of_measurement: W");
                         entity.Add("  force_update: true");
+                        break;
+                    case SensorType.PowerCycle:
+                        entity.Add($"  state_topic: {prefix}/{sensor.DeviceName}/cycle");
                         break;
                     case SensorType.Presence:
                         entity.Add($"  device_class: {sensor.DeviceClass ?? "presence"}");
