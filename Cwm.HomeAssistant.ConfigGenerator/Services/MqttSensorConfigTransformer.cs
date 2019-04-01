@@ -311,6 +311,7 @@ namespace Cwm.HomeAssistant.Config.Services
                     case SensorType.Battery:
                         entity.Add($"  device_class: {sensor.DeviceClass ?? "battery"}");
                         entity.Add($"  state_topic: {prefix}/{sensor.DeviceId}/battery");
+                        entity.Add($"  value_template: >{Environment.NewLine}    {{{{ value | int }}}}");
                         entity.Add(@"  unit_of_measurement: '%'");
                         break;
                     case SensorType.Contact:
@@ -326,6 +327,7 @@ namespace Cwm.HomeAssistant.Config.Services
                     case SensorType.Illuminance:
                         entity.Add($"  device_class: {sensor.DeviceClass ?? "illuminance"}");
                         entity.Add($"  state_topic: {prefix}/{sensor.DeviceId}/illuminance");
+                        entity.Add($"  value_template: >{Environment.NewLine}    {{{{ value | int }}}}");
                         entity.Add("  unit_of_measurement: lux");
                         entity.Add("  force_update: true");
                         break;
@@ -348,6 +350,7 @@ namespace Cwm.HomeAssistant.Config.Services
                         }
 
                         entity.Add($"  state_topic: {prefix}/{sensor.DeviceId}/power");
+                        entity.Add($"  value_template: >{Environment.NewLine}    {{{{ value | float }}}}");
                         entity.Add("  unit_of_measurement: W");
                         entity.Add("  force_update: true");
                         break;
@@ -367,6 +370,7 @@ namespace Cwm.HomeAssistant.Config.Services
                     case SensorType.Temperature:
                         entity.Add($"  device_class: {sensor.DeviceClass ?? "temperature"}");
                         entity.Add($"  state_topic: {prefix}/{sensor.DeviceId}/temperature");
+                        entity.Add($"  value_template: >{Environment.NewLine}    {{{{ value | float }}}}");
                         entity.Add("  unit_of_measurement: °C");
                         entity.Add("  force_update: true");
                         break;

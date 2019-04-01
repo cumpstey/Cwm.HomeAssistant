@@ -187,6 +187,8 @@ binary_sensor.test_users_button:
   name: Test multisensor battery
   device_class: battery
   state_topic: hubitat/Test multisensor/battery
+  value_template: >
+    {{ value | int }}
   unit_of_measurement: '%'
 ".Trim();
 
@@ -444,6 +446,8 @@ binary_sensor.test_users_button:
   name: Test device illuminance
   device_class: illuminance
   state_topic: hubitat/Test multisensor/illuminance
+  value_template: >
+    {{ value | int }}
   unit_of_measurement: lux
   force_update: true
 ".Trim();
@@ -559,6 +563,8 @@ binary_sensor.test_users_button:
 - platform: mqtt
   name: Test device power
   state_topic: hubitat/Test meter/power
+  value_template: >
+    {{ value | float }}
   unit_of_measurement: W
   force_update: true
 ".Trim();
@@ -762,6 +768,8 @@ binary_sensor.test_device:
   name: Test device temperature
   device_class: temperature
   state_topic: hubitat/Test multisensor/temperature
+  value_template: >
+    {{ value | float }}
   unit_of_measurement: °C
   force_update: true
 ".Trim();
