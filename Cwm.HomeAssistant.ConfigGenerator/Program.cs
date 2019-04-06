@@ -1,6 +1,6 @@
-﻿using Cwm.HomeAssistant.Config.Initialization;
+﻿using System.Threading.Tasks;
+using Cwm.HomeAssistant.Config.Initialization;
 using Cwm.HomeAssistant.Config.Services;
-using System.IO;
 
 namespace Cwm.HomeAssistant.Config
 {
@@ -10,15 +10,20 @@ namespace Cwm.HomeAssistant.Config
         {
             var configuration = new AppSettingsReader().GenerateConfiguration();
 
-            //var mqttDeviceInputFile = Path.Combine(configuration.SourceFolder, "mqtt-devices.json");
-            //var mqttActuatorInputFile = Path.Combine(configuration.SourceFolder, "mqtt-actuators.json");
-            //var mqttSensorInputFile = Path.Combine(configuration.SourceFolder, "mqtt-sensors.json");
-
+            var filesystem = new Filesystem();
             var mqttConfigGenerator = new MqttConfigGenerator(
+                filesystem,
                 new MqttActuatorConfigTransformer(configuration),
-                new MqttSensorConfigTransformer(configuration));
-            //mqttConfigGenerator.TransformActuatorConfig(mqttDeviceInputFile, configuration.OutputFolder);
-            mqttConfigGenerator.GenerateConfig(configuration.SourceFolder, configuration.OutputFolder);
+                new MqttSensorConfigTransformer(configuration),
+                new TemplateSensorConfigTransformer(configuration));
+            var lovelaceConfigGenerator = new LovelaceConfigGenerator(
+                filesystem,
+                new LovelaceConfigTransformer());
+
+            Task.WaitAll(
+                mqttConfigGenerator.GenerateConfigAsync(configuration.GetMqttDevicesFolder(), configuration.OutputFolder),
+                lovelaceConfigGenerator.GenerateConfigAsync(configuration.GetMqttDevicesFolder(), configuration.GetLovelaceIncludesFolder())
+            );
         }
     }
 }

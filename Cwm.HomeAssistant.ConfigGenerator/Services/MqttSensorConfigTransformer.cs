@@ -97,29 +97,23 @@ namespace Cwm.HomeAssistant.Config.Services
                         throw new ValidationException("Can't have a power cycle on-off sensor without a power cycle sensor.");
                     }
 
-                    var cycleSensorName = $"{definition.Name} cycle";
+                    //var cycleSensorName = $"{definition.Name} cycle";
                     var config = FormatTemplateDefinition(EntityType.BinarySensor, new TemplateSensorConfig
                     {
                         Name = definition.Name,
                         Icon = sensor.Icon,
-                        ValueTemplate = $"states.sensor.{FormatAsId(cycleSensorName)}.state not in ['unknown','off']",
+                        //ValueTemplate = $"states.sensor.{FormatAsId(cycleSensorName)}.state not in ['unknown','off']",
+                        ValueTemplate = $"states.{GetSensorEntityId(SensorType.PowerCycle, definition)}.state not in ['unknown','off']",
                     });
                     configs.Add(EntityType.BinarySensor, config);
                 }
                 else
                 {
                     // Figure out whether it should be a binary sensor
-                    var entityType = new[] { SensorType.Button, SensorType.Contact, SensorType.Moisture, SensorType.Motion, SensorType.Presence }.Contains(sensor.Type)
-                        ? EntityType.BinarySensor : EntityType.Sensor;
+                    var entityType = GetSensorEntityType(sensor.Type);
 
                     // Generate a reasonably human-friendly name, depending on the type of sensor.
-                    var name = sensor.Type == SensorType.Battery
-                            ? $"{definition.DeviceId} battery"
-                        : sensor.Type == SensorType.PowerCycle
-                            ? $"{definition.Name} cycle"
-                        : new[] { SensorType.Button, SensorType.Contact, SensorType.Moisture, SensorType.Presence }.Contains(sensor.Type)
-                            ? definition.Name
-                        : $"{definition.Name} {sensor.Type}";
+                    var name = GetSensorName(sensor.Type, definition);
 
                     // Identify sensors which are set by Home Assistant
                     var platform = new[] { SensorType.PowerCycle }.Contains(sensor.Type)

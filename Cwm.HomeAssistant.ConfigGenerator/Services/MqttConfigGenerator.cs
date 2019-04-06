@@ -1,18 +1,14 @@
-﻿using Cwm.HomeAssistant.Config.Models;
-using Newtonsoft.Json;
-using System;
-using System.Collections.Generic;
+﻿using System;
 using System.IO;
 using System.Linq;
-using YamlDotNet.Serialization;
-using YamlDotNet.Serialization.NamingConventions;
+using System.Threading.Tasks;
 
 namespace Cwm.HomeAssistant.Config.Services
 {
     /// <summary>
     /// Class providing functionality to update Home Assistant configuration files.
     /// </summary>
-    public class MqttConfigGenerator
+    public class MqttConfigGenerator : ConfigGenerator
     {
         #region Fields
 
@@ -30,6 +26,8 @@ namespace Cwm.HomeAssistant.Config.Services
 
         private readonly MqttSensorConfigTransformer _sensorTransformer;
 
+        private readonly TemplateSensorConfigTransformer _templateSensorTransformer;
+
         #endregion
 
         #region Constructor
@@ -39,10 +37,15 @@ namespace Cwm.HomeAssistant.Config.Services
         /// </summary>
         /// <param name="actuatorTransformer"></param>
         /// <param name="sensorTransformer"></param>
-        public MqttConfigGenerator(MqttActuatorConfigTransformer actuatorTransformer, MqttSensorConfigTransformer sensorTransformer)
+        public MqttConfigGenerator(IFileProvider fileProvider,
+                                   MqttActuatorConfigTransformer actuatorTransformer,
+                                   MqttSensorConfigTransformer sensorTransformer,
+                                   TemplateSensorConfigTransformer templateSensorTransformer)
+            : base(fileProvider)
         {
-            _actuatorTransformer = actuatorTransformer;
-            _sensorTransformer = sensorTransformer;
+            _actuatorTransformer = actuatorTransformer ?? throw new ArgumentNullException(nameof(actuatorTransformer));
+            _sensorTransformer = sensorTransformer ?? throw new ArgumentNullException(nameof(sensorTransformer));
+            _templateSensorTransformer = templateSensorTransformer ?? throw new ArgumentNullException(nameof(templateSensorTransformer));
         }
 
         #endregion
@@ -56,23 +59,9 @@ namespace Cwm.HomeAssistant.Config.Services
         /// </summary>
         /// <param name="sourceDirectory">Directory containig device definition files</param>
         /// <param name="outputDirectory">Directory containing Home Assistant config files</param>
-        public void GenerateConfig(string sourceDirectory, string outputDirectory)
+        public async Task GenerateConfigAsync(string sourceDirectory, string outputDirectory)
         {
-            var files = Directory.EnumerateFiles(sourceDirectory, "*.yaml");
-            var definitions = new List<DeviceDefinition>();
-            foreach (var file in files)
-            {
-                var fileContent = File.ReadAllText(file);
-
-                var deserializer = new DeserializerBuilder()
-                    .WithNamingConvention(new CamelCaseNamingConvention())
-                    .Build();
-                var fileDefinitions = deserializer.Deserialize<DeviceDefinition[]>(fileContent);
-
-                //var fileDefinitions = JsonConvert.DeserializeObject<IReadOnlyList<DeviceDefinition>>(fileContent);
-
-                definitions.AddRange(fileDefinitions);
-            }
+            var definitions = await GetDeviceDefinitionsAsync(sourceDirectory);
 
             var configs = new KeyedCollection<ConfigEntry>();
             foreach (var definition in definitions)
@@ -81,10 +70,12 @@ namespace Cwm.HomeAssistant.Config.Services
                 configs.Add(_sensorTransformer.TransformConfig(definition));
             }
 
+            configs.Add(_templateSensorTransformer.GetLowBatteryAlertSensor(definitions));
+
             foreach (var key in configs.Keys)
             {
-                WriteToConfigFile(key, configs[key].Select(i => i.Entity).ToArray(), Path.Join(outputDirectory, $"{key}.yaml"));
-                WriteToConfigFile(key, configs[key].Select(i => i.Customization).Where(i => i.Any()).ToArray(), Path.Join(outputDirectory, $"customize.yaml"));
+                await WriteToConfigFileAsync(key, configs[key].Select(i => i.Entity).ToArray(), Path.Combine(outputDirectory, $"{key}.yaml"));
+                await WriteToConfigFileAsync(key, configs[key].Select(i => i.Customization).Where(i => i.Any()).ToArray(), Path.Combine(outputDirectory, $"customize.yaml"));
             }
         }
 
@@ -92,9 +83,9 @@ namespace Cwm.HomeAssistant.Config.Services
 
         #region Helpers
 
-        private void WriteToConfigFile(string type, string[] entries, string filePath)
+        private async Task WriteToConfigFileAsync(string type, string[] entries, string filePath)
         {
-            if(!entries.Any())
+            if (!entries.Any())
             {
                 return;
             }
@@ -102,7 +93,7 @@ namespace Cwm.HomeAssistant.Config.Services
             var sectionStart = string.Format(SectionStartFormat, type);
             var sectionEnd = string.Format(SectionEndFormat, type);
 
-            var fileContent = (File.Exists(filePath) ? File.ReadAllText(filePath) : string.Empty).Trim();
+            var fileContent = (FileProvider.FileExists(filePath) ? await FileProvider.ReadFileAsync(filePath) : string.Empty).Trim();
             var startIndex = fileContent.IndexOf(sectionStart);
             var endIndex = fileContent.IndexOf(sectionEnd);
 
@@ -126,7 +117,7 @@ namespace Cwm.HomeAssistant.Config.Services
                 fileContent = fileContent + Environment.NewLine + Environment.NewLine + newContent;
             }
 
-            File.WriteAllText(filePath, fileContent + Environment.NewLine);
+            await FileProvider.WriteFileAsync(filePath, fileContent + Environment.NewLine);
         }
 
         #endregion

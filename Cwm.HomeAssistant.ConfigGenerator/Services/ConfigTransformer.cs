@@ -1,4 +1,6 @@
-﻿using System;
+﻿using Cwm.HomeAssistant.Config.Models;
+using System;
+using System.Linq;
 using System.Text.RegularExpressions;
 
 namespace Cwm.HomeAssistant.Config.Services
@@ -25,6 +27,57 @@ namespace Cwm.HomeAssistant.Config.Services
                     .TrimStart('_'),
                 "_+",
                 "_");
+        }
+
+        /// <summary>
+        /// Generates a reasonably human-friendly name, depending on the
+        /// type of sensor.
+        /// </summary>
+        /// <param name="sensorType">Sensor type</param>
+        /// <param name="definition">Device definition</param>
+        /// <returns>The name of the entity to be used in Home Assistant</returns>
+        protected string GetSensorName(string sensorType, DeviceDefinition definition)
+        {
+            var name = sensorType == SensorType.Battery
+                        ? $"{definition.DeviceId} battery"
+                    : sensorType == SensorType.PowerCycle
+                        ? $"{definition.Name} cycle"
+                    : new[] { SensorType.Button, SensorType.Contact, SensorType.Moisture, SensorType.Presence }.Contains(sensorType)
+                        ? definition.Name
+                    : $"{definition.Name} {sensorType}";
+            return name;
+        }
+
+        /// <summary>
+        /// Generates the Home Assistant entity id for the sensor.
+        /// </summary>
+        /// <param name="sensorType">Sensor type</param>
+        /// <param name="definition">Device definition</param>
+        /// <returns>The id of the entity as used in Home Assistant</returns>
+        protected string GetSensorEntityId(string sensorType, DeviceDefinition definition) {
+            var name = GetSensorName(sensorType, definition);
+            var id = $"{GetSensorEntityType(sensorType)}.{FormatAsId(name)}";
+            return id;
+        }
+
+        /// <summary>
+        /// Returns the entity type for a given sensor type.
+        /// </summary>
+        /// <param name="sensorType">Sensor type</param>
+        /// <returns>Entity type, either <see cref="EntityType.BinarySensor"/> or <see cref="EntityType.Sensor"/></returns>
+        protected string GetSensorEntityType(string sensorType)
+        {
+            switch (sensorType)
+            {
+                case SensorType.Button:
+                case SensorType.Contact:
+                case SensorType.Moisture:
+                case SensorType.Motion:
+                case SensorType.Presence:
+                    return EntityType.BinarySensor;
+                default:
+                    return EntityType.Sensor;
+            }
         }
 
         #endregion
