@@ -11,14 +11,16 @@ namespace Cwm.HomeAssistant.Config
             var configuration = new AppSettingsReader().GenerateConfiguration();
 
             var filesystem = new Filesystem();
+            var deviceTranslator = new DeviceTranslator();
+
             var mqttConfigGenerator = new MqttConfigGenerator(
                 filesystem,
                 new MqttActuatorConfigTransformer(configuration),
                 new MqttSensorConfigTransformer(configuration),
-                new TemplateSensorConfigTransformer(configuration));
+                new TemplateSensorConfigTransformer(configuration, deviceTranslator));
             var lovelaceConfigGenerator = new LovelaceConfigGenerator(
                 filesystem,
-                new LovelaceConfigTransformer());
+                new LovelaceConfigTransformer(deviceTranslator));
 
             Task.WaitAll(
                 mqttConfigGenerator.GenerateConfigAsync(configuration.GetMqttDevicesFolder(), configuration.OutputFolder),

@@ -37,11 +37,11 @@ namespace Cwm.HomeAssistant.Config.Services
         /// </summary>
         /// <param name="actuatorTransformer"></param>
         /// <param name="sensorTransformer"></param>
-        public MqttConfigGenerator(IFileProvider fileProvider,
+        public MqttConfigGenerator(IFilesystem filesystem,
                                    MqttActuatorConfigTransformer actuatorTransformer,
                                    MqttSensorConfigTransformer sensorTransformer,
                                    TemplateSensorConfigTransformer templateSensorTransformer)
-            : base(fileProvider)
+            : base(filesystem)
         {
             _actuatorTransformer = actuatorTransformer ?? throw new ArgumentNullException(nameof(actuatorTransformer));
             _sensorTransformer = sensorTransformer ?? throw new ArgumentNullException(nameof(sensorTransformer));
@@ -68,6 +68,7 @@ namespace Cwm.HomeAssistant.Config.Services
             {
                 configs.Add(_actuatorTransformer.TransformConfig(definition));
                 configs.Add(_sensorTransformer.TransformConfig(definition));
+                configs.Add(_templateSensorTransformer.GetButtonActivitySensor(definition));
             }
 
             configs.Add(_templateSensorTransformer.GetLowBatteryAlertSensor(definitions));
@@ -93,7 +94,7 @@ namespace Cwm.HomeAssistant.Config.Services
             var sectionStart = string.Format(SectionStartFormat, type);
             var sectionEnd = string.Format(SectionEndFormat, type);
 
-            var fileContent = (FileProvider.FileExists(filePath) ? await FileProvider.ReadFileAsync(filePath) : string.Empty).Trim();
+            var fileContent = (Filesystem.FileExists(filePath) ? await Filesystem.ReadFileAsync(filePath) : string.Empty).Trim();
             var startIndex = fileContent.IndexOf(sectionStart);
             var endIndex = fileContent.IndexOf(sectionEnd);
 
@@ -117,7 +118,7 @@ namespace Cwm.HomeAssistant.Config.Services
                 fileContent = fileContent + Environment.NewLine + Environment.NewLine + newContent;
             }
 
-            await FileProvider.WriteFileAsync(filePath, fileContent + Environment.NewLine);
+            await Filesystem.WriteFileAsync(filePath, fileContent + Environment.NewLine);
         }
 
         #endregion

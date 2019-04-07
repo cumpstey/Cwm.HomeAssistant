@@ -15,7 +15,7 @@ namespace Cwm.HomeAssistant.ConfigTransformer.Services
         public void Low_battery_alert_sensor_config_is_generated()
         {
             // Arrange
-            var transformer = new TemplateSensorConfigTransformer(new DummyConfiguration { LowBatteryAlertThreshold = 14 });
+            var transformer = new TemplateSensorConfigTransformer(new DummyConfiguration { LowBatteryAlertThreshold = 14 }, new DeviceTranslator());
             var definitions = new [] {
                 new DeviceDefinition
                 {
@@ -58,6 +58,49 @@ namespace Cwm.HomeAssistant.ConfigTransformer.Services
 
             // Action
             var result = transformer.GetLowBatteryAlertSensor(definitions);
+
+            // Assert
+            Assert.AreEqual(1, result.Keys.Count, "One entity type returned");
+            Assert.AreEqual("binary_sensor", result.Keys.First(), "The type of the entity returned is correct");
+            Assert.AreEqual(1, result["binary_sensor"].Count, "Only one entity returned");
+
+            var config = result["binary_sensor"].First();
+            Assert.AreEqual(expectedConfig, config.Entity, "Config declared as expected");
+            Assert.IsEmpty(config.Customization, "Customization declared as expected");
+        }
+
+        #endregion
+
+        #region Button activity
+
+        [Test]
+        public void Button_activity_sensor_config_is_generated()
+        {
+            // Arrange
+            var transformer = new TemplateSensorConfigTransformer(new DummyConfiguration { LowBatteryAlertThreshold = 14 }, new DeviceTranslator());
+            var definition = new DeviceDefinition
+            {
+                DeviceId = "My button",
+                Platform = "hubitat",
+                Sensors = new[] {
+                    new SensorDefinition { Type = "button" },
+                    new SensorDefinition { Type = "hold-button" },
+                },
+            };
+            var expectedConfig = @"
+# My button activity
+- platform: template
+  sensors:
+    my_button_active:
+      friendly_name: My button
+      value_template: >
+        {{ is_state('binary_sensor.my_button', 'on')
+        or is_state('binary_sensor.my_button_hold', 'on')
+        }}
+".Trim();
+
+            // Action
+            var result = transformer.GetButtonActivitySensor(definition);
 
             // Assert
             Assert.AreEqual(1, result.Keys.Count, "One entity type returned");

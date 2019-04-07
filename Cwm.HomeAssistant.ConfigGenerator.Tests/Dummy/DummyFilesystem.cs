@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace Cwm.HomeAssistant.Config.Services
 {
-    public class DummyFilesystem : IFileProvider
+    public class DummyFilesystem : IFilesystem
     {
         #region Fields
 

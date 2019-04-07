@@ -1,4 +1,8 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
+using System.Linq;
+using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using Cwm.HomeAssistant.Config.Models;
 using YamlDotNet.Serialization;
@@ -10,16 +14,16 @@ namespace Cwm.HomeAssistant.Config.Services
     {
         #region Constructor
 
-        protected ConfigGenerator(IFileProvider fileProvider)
+        protected ConfigGenerator(IFilesystem filesystem)
         {
-            FileProvider = fileProvider;
+            Filesystem = filesystem;
         }
 
         #endregion
 
         #region Properties
 
-        protected IFileProvider FileProvider { get; private set; }
+        protected IFilesystem Filesystem { get; private set; }
 
         #endregion
 
@@ -27,11 +31,11 @@ namespace Cwm.HomeAssistant.Config.Services
 
         protected async Task<IReadOnlyCollection<DeviceDefinition>> GetDeviceDefinitionsAsync(string sourceDirectory)
         {
-            var files = FileProvider.EnumerateFiles(sourceDirectory, "*.yaml");
+            var files = Filesystem.EnumerateFiles(sourceDirectory, "*.yaml");
             var definitions = new List<DeviceDefinition>();
             foreach (var file in files)
             {
-                var fileContent = await FileProvider.ReadFileAsync(file);
+                var fileContent = await Filesystem.ReadFileAsync(file);
 
                 var deserializer = new DeserializerBuilder()
                     .WithNamingConvention(new CamelCaseNamingConvention())

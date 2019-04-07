@@ -15,7 +15,7 @@ namespace Cwm.HomeAssistant.ConfigTransformer.Services
         public void Sensor_entity_list_config_is_generated()
         {
             // Arrange
-            var transformer = new LovelaceConfigTransformer();
+            var transformer = new LovelaceConfigTransformer(new DeviceTranslator());
             var definitions = new[] {
                 new DeviceDefinition
                 {

@@ -3,7 +3,7 @@ using System.Threading.Tasks;
 
 namespace Cwm.HomeAssistant.Config.Services
 {
-    public interface IFileProvider
+    public interface IFilesystem
     {
         bool FileExists(string path);
 

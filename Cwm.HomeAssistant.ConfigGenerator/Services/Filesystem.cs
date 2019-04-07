@@ -4,7 +4,7 @@ using System.Threading.Tasks;
 
 namespace Cwm.HomeAssistant.Config.Services
 {
-    public class Filesystem : IFileProvider
+    public class Filesystem : IFilesystem
     {
         public bool FileExists(string path)
         {

@@ -1,4 +1,4 @@
-﻿namespace Cwm.HomeAssistant.Config.Models
+﻿namespace Cwm.HomeAssistant.Config.Models.Lovelace
 {
     /// <summary>
     /// Class representing the configuration of an entity as declared

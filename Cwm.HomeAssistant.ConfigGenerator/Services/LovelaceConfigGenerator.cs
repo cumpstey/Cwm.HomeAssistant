@@ -4,6 +4,7 @@ using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 using Cwm.HomeAssistant.Config.Models;
+using Cwm.HomeAssistant.Config.Models.Lovelace;
 using YamlDotNet.Serialization;
 using YamlDotNet.Serialization.NamingConventions;
 
@@ -27,8 +28,8 @@ namespace Cwm.HomeAssistant.Config.Services
         /// Initializes a new instance of the <see cref="LovelaceConfigGenerator"/> class.
         /// </summary>
         /// <param name="transformer"></param>
-        public LovelaceConfigGenerator(IFileProvider fileProvider, LovelaceConfigTransformer transformer)
-            : base(fileProvider)
+        public LovelaceConfigGenerator(IFilesystem filesystem, LovelaceConfigTransformer transformer)
+            : base(filesystem)
         {
             _transformer = transformer ?? throw new ArgumentNullException(nameof(transformer));
         }
@@ -47,9 +48,10 @@ namespace Cwm.HomeAssistant.Config.Services
         /// <param name="outputDirectory">Directory containing Lovelace files</param>
         public async Task GenerateConfigAsync(string sourceDirectory, string outputDirectory)
         {
-            var definitions = await GetDeviceDefinitionsAsync(sourceDirectory);
+            var devices = await GetDeviceDefinitionsAsync(sourceDirectory);
 
-            await UpdateEntitiesConfigAsync(SensorType.Battery, outputDirectory, definitions);
+            await UpdateEntitiesConfigAsync(SensorType.Battery, outputDirectory, devices);
+            await UpdateButtonsConfigAsync(outputDirectory, devices);
         }
 
         #endregion
@@ -62,9 +64,9 @@ namespace Cwm.HomeAssistant.Config.Services
 
             // Deserialize the existing Lovelace config file.
             LovelaceEntity[] existingConfig = null;
-            if (FileProvider.FileExists(file))
+            if (Filesystem.FileExists(file))
             {
-                var fileContent = await FileProvider.ReadFileAsync(file);
+                var fileContent = await Filesystem.ReadFileAsync(file);
                 var deserializer = new DeserializerBuilder()
                     .WithNamingConvention(new UnderscoredNamingConvention())
                     .Build();
@@ -93,7 +95,23 @@ namespace Cwm.HomeAssistant.Config.Services
                 .Build();
             var output = serializer.Serialize(config);
 
-            await FileProvider.WriteFileAsync(file, output);
+            await Filesystem.WriteFileAsync(file, output);
+        }
+
+        private async Task UpdateButtonsConfigAsync(string configDirectory, IEnumerable<DeviceDefinition> devices)
+        {
+            var file = Path.Combine(configDirectory, $"button-entities.yaml");
+
+            // Generate the list of entities required by the list of devices.
+            var model = _transformer.GenerateButtonList(devices);
+
+            // Serialize the list of entities to yaml.
+            var serializer = new SerializerBuilder()
+                .WithNamingConvention(new UnderscoredNamingConvention())
+                .Build();
+            var output = serializer.Serialize(model);
+
+            await Filesystem.WriteFileAsync(file, output);
         }
 
         #endregion

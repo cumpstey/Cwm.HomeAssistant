@@ -60,6 +60,38 @@ namespace Cwm.HomeAssistant.Config.Services
             return id;
         }
 
+        protected string GetButtonEntityId(int? buttonNumber, ButtonType buttonType, DeviceDefinition definition)
+        {
+            var name = GetSensorName(SensorType.Button, definition);
+            var id = $"{GetSensorEntityType(SensorType.Button)}.{FormatAsId(name)}";
+
+            if (buttonNumber.HasValue)
+            {
+                id += $"_{buttonNumber}";
+            }
+
+            if (buttonType == ButtonType.Hold || buttonType == ButtonType.HoldAndRelease)
+            {
+                id += "_hold";
+            }
+
+            return id;
+        }
+
+        protected string GetButtonActivitySensorId(DeviceDefinition definition)
+        {
+            var name = GetSensorName(SensorType.Button, definition);
+            var id = FormatAsId($"{name} active");
+            return id;
+        }
+
+        protected string GetButtonActivityEntityId(DeviceDefinition definition)
+        {
+            var sensorId = GetButtonActivitySensorId(definition);
+            var id = $"{EntityType.BinarySensor}.{sensorId}";
+            return id;
+        }
+
         /// <summary>
         /// Returns the entity type for a given sensor type.
         /// </summary>

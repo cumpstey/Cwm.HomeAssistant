@@ -1,5 +1,6 @@
 ﻿using Cwm.HomeAssistant.Config.Exceptions;
 using Cwm.HomeAssistant.Config.Models;
+using Cwm.HomeAssistant.Config.Models.Lovelace;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -13,26 +14,41 @@ namespace Cwm.HomeAssistant.Config.Services
     /// </summary>
     public class LovelaceConfigTransformer : ConfigTransformer
     {
+        #region Fields
+
+        private DeviceTranslator _deviceTranslator;
+
+        #endregion
+
+        #region Constructor
+
+        public LovelaceConfigTransformer(DeviceTranslator deviceTranslator)
+        {
+            _deviceTranslator = deviceTranslator ?? throw new ArgumentNullException(nameof(deviceTranslator));
+        }
+
+        #endregion
+
         #region Methods
 
         /// <summary>
         /// Generates a low battery alert template sensor using all the
         /// battery sensors in th list of devices.
         /// </summary>
-        /// <param name="definitions">List of device definitions</param>
+        /// <param name="devices">List of device definitions</param>
         /// <returns>A collection of config entries with a single item</returns>
-        public IReadOnlyCollection<LovelaceEntity> GenerateSensorEntityList(string sensorType, IEnumerable<DeviceDefinition> definitions)
+        public IReadOnlyCollection<LovelaceEntity> GenerateSensorEntityList(string sensorType, IEnumerable<DeviceDefinition> devices)
         {
-            var devices = definitions.Where(d => d.Sensors != null && d.Sensors.Any(s => s.Type == sensorType))
-                                     .OrderBy(d => d.Name);
+            var sensorDevices = devices.Where(d => d.Sensors != null && d.Sensors.Any(s => s.Type == sensorType))
+                                       .OrderBy(d => d.Name);
 
-            var invalid = devices.Where(definition => string.IsNullOrWhiteSpace(definition.DeviceId));
+            var invalid = sensorDevices.Where(definition => string.IsNullOrWhiteSpace(definition.DeviceId));
             if (invalid.Any())
             {
                 throw new ValidationException($"{invalid.Count()} definitions missing a device id.");
             }
 
-            var entities = devices.Select(i => new LovelaceEntity
+            var entities = sensorDevices.Select(i => new LovelaceEntity
             {
                 Entity = GetSensorEntityId(sensorType, i),
                 Name = i.Name,
@@ -41,23 +57,24 @@ namespace Cwm.HomeAssistant.Config.Services
             return  entities;
         }
 
-        public string _GenerateSensorEntityList(string sensorType, IEnumerable<DeviceDefinition> definitions)
+        public IReadOnlyCollection<FoldableRow> GenerateButtonList(IEnumerable<DeviceDefinition> devices)
         {
-            var devices = definitions.Where(d => d.Sensors != null && d.Sensors.Any(s => s.Type == sensorType))
-                                     .OrderBy(d => d.Name);
-
-            var invalid = devices.Where(definition => string.IsNullOrWhiteSpace(definition.DeviceId));
-            if (invalid.Any())
+            var model = new List<FoldableRow>();
+            foreach (var device in devices)
             {
-                throw new ValidationException($"{invalid.Count()} definitions missing a device id.");
+                var buttons = _deviceTranslator.TranslateButtonDefinition(device);
+                if (!buttons.Any()) continue;
+
+                model.Add(new FoldableRow
+                {
+                    Head = GetButtonActivityEntityId(device),
+                    Items = buttons.Select(i => GetButtonEntityId(i.Item1, i.Item2, device))
+                                   .OrderBy(i => i)
+                                   .ToArray(),
+                });
             }
 
-            var entities = devices.Select(i => $@"
-- entity: {GetSensorEntityId(sensorType, i)}
-  name: {i.Name}
-".Trim());
-
-            return string.Join(Environment.NewLine, entities);
+            return model;
         }
 
         #endregion
