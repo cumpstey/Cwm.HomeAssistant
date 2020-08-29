@@ -196,5 +196,74 @@ namespace Cwm.HomeAssistant.ConfigTransformer.Services
         }
 
         #endregion
+
+        #region Offline entities
+
+        [Test]
+        public void Offline_entities_file_is_generated()
+        {
+            // Arrange
+            var filesystem = new DummyFilesystem();
+            var transformer = new LovelaceConfigTransformer(new DeviceTranslator());
+            var generator = new LovelaceConfigGenerator(filesystem, transformer);
+
+            filesystem.WriteFileAsync(@"Z:\source\devices.yaml", @"
+# My test device
+- deviceId: Test device
+  platform: hubitat
+  sensors:
+  - type: offline
+".Trim());
+
+            var expectedConfig = @"
+- entity: binary_sensor.test_device_offline
+  name: Test device
+".Trim();
+
+            // Action
+            Task.WaitAll(generator.GenerateConfigAsync(@"Z:\source", @"Z:\output"));
+            var generatedConfig = filesystem.ReadFileAsync(@"Z:\output\offline-entities.yaml").Result;
+
+            // Assert
+            Assert.AreEqual(expectedConfig, generatedConfig.Trim(), "Config declared as expected");
+        }
+
+        [Test]
+        public void Offline_entities_existing_entries_are_retained()
+        {
+            // Arrange
+            var filesystem = new DummyFilesystem();
+            var transformer = new LovelaceConfigTransformer(new DeviceTranslator());
+            var generator = new LovelaceConfigGenerator(filesystem, transformer);
+
+            filesystem.WriteFileAsync(@"Z:\output\offline-entities.yaml", @"
+- entity: binary_sensor.my_existing_device_offline
+  name: My existing device
+");
+
+            filesystem.WriteFileAsync(@"Z:\source\devices.yaml", @"
+# My test device
+- deviceId: Test device
+  platform: hubitat
+  sensors:
+  - type: offline
+".Trim());
+
+            var expectedConfig = @"
+- entity: binary_sensor.my_existing_device_offline
+  name: My existing device
+- entity: binary_sensor.test_device_offline
+  name: Test device
+".Trim();
+
+            // Action
+            Task.WaitAll(generator.GenerateConfigAsync(@"Z:\source", @"Z:\output"));
+            var generatedConfig = filesystem.ReadFileAsync(@"Z:\output\offline-entities.yaml").Result;
+
+            // Assert
+            Assert.AreEqual(expectedConfig, generatedConfig.Trim(), "Config declared as expected");
+        }
+
+        #endregion
     }
 }

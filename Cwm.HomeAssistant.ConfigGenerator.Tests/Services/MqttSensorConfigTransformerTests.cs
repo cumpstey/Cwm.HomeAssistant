@@ -623,6 +623,44 @@ sensor.test_device_battery:
 
         #endregion
 
+        #region Offline
+
+        [Test]
+        public void Offline_sensor_config_is_generated()
+        {
+            // Arrange
+            var transformer = new MqttSensorConfigTransformer(new DummyConfiguration(), new DeviceTranslator());
+            var definition = new DeviceDefinition
+            {
+                DeviceId = "Test multisensor",
+                Platform = "hubitat",
+                Sensors = new[] { new SensorDefinition { Type = "offline" } },
+            };
+            var expectedConfig = @"
+# Test multisensor offline, from hubitat via MQTT
+- platform: mqtt
+  name: Test multisensor offline
+  device_class: problem
+  state_topic: hubitat/Test multisensor/activity
+  payload_on: inactive
+  payload_off: active
+".Trim();
+
+            // Action
+            var result = transformer.TransformConfig(definition);
+
+            // Assert
+            Assert.AreEqual(1, result.Keys.Count, "One entity type returned");
+            Assert.AreEqual("binary_sensor", result.Keys.First(), "The type of the entity returned is correct");
+            Assert.AreEqual(1, result["binary_sensor"].Count, "Only one entity returned");
+
+            var config = result["binary_sensor"].First();
+            Assert.AreEqual(expectedConfig, config.Entity, "Config declared as expected");
+            Assert.IsEmpty(config.Customization, "Customization declared as expected");
+        }
+
+        #endregion
+
         #region Power
 
         [Test]

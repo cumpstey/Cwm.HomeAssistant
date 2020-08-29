@@ -38,7 +38,9 @@ namespace Cwm.HomeAssistant.Config.Services
         /// <returns>The name of the entity to be used in Home Assistant</returns>
         protected string GetSensorName(string sensorType, DeviceDefinition definition)
         {
-            var name = sensorType == SensorType.Battery
+            var name = sensorType == SensorType.Offline
+                        ? $"{definition.DeviceId} offline"
+                    : sensorType == SensorType.Battery
                         ? $"{definition.DeviceId} battery"
                     : sensorType == SensorType.PowerCycle
                         ? $"{definition.Name} cycle"
@@ -105,6 +107,7 @@ namespace Cwm.HomeAssistant.Config.Services
                 case SensorType.Contact:
                 case SensorType.Moisture:
                 case SensorType.Motion:
+                case SensorType.Offline:
                 case SensorType.Presence:
                     return EntityType.BinarySensor;
                 default:

@@ -36,6 +36,11 @@
         public const string Motion = "motion";
 
         /// <summary>
+        /// Device offline sensor.
+        /// </summary>
+        public const string Offline = "offline";
+
+        /// <summary>
         /// Power sensor.
         /// </summary>
         public const string Power = "power";

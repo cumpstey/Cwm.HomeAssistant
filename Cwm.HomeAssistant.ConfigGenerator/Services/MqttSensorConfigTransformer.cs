@@ -59,13 +59,7 @@ namespace Cwm.HomeAssistant.Config.Services
             {
                 if (sensor.Type.EndsWith("button"))
                 {
-                    // Buttons processed separately.
-
-                    //var config = ProcessButtonDefinition(sensor, definition);
-                    //foreach (var item in config)
-                    //{
-                    //    configs.Add(EntityType.BinarySensor, item);
-                    //}
+                    // Buttons processed separately below.
                 }
                 else if (sensor.Type.EndsWith(SensorType.Threshold))
                 {
@@ -140,7 +134,7 @@ namespace Cwm.HomeAssistant.Config.Services
             }
 
             var buttonConfigs = ProcessButtonDefinition(definition);
-            configs.AddMany(EntityType.BinarySensor, buttonConfigs);            
+            configs.AddMany(EntityType.BinarySensor, buttonConfigs);
 
             return configs;
         }
@@ -310,85 +304,6 @@ namespace Cwm.HomeAssistant.Config.Services
             return configs;
         }
 
-
-        //private IReadOnlyCollection<ConfigEntry> _ProcessButtonDefinition(SensorDefinition sensor, DeviceDefinition definition)
-        //{
-        //    if (sensor.Type == "hold-button")
-        //    {
-        //        void addConfig(List<string> entity)
-        //        {
-        //            var prefix = _configuration.GetPlatformPrefix(definition.Platform);
-        //            entity.Add($"  state_topic: {prefix}/{definition.DeviceId}/1/hold");
-        //            entity.Add("  payload_on: held");
-        //            entity.Add("  off_delay: 1");
-        //        }
-
-        //        return new[] {
-        //            FormatDefinition(addConfig, EntityType.BinarySensor, new SensorConfig
-        //            {
-        //                Name = $"{definition.Name} hold",
-        //                Platform = definition.Platform,
-        //                DeviceId = definition.DeviceId,
-        //                DeviceName = definition.Name,
-        //                DeviceClass = sensor.DeviceClass,
-        //                Icon = sensor.Icon,
-        //            })
-        //        };
-        //    }
-        //    else if (sensor.Type == "hold-release-button")
-        //    {
-        //        // For a hold/release button, until I find a better way I'm using a contact sensor.
-        //        void addConfig(List<string> entity)
-        //        {
-        //            var prefix = _configuration.GetPlatformPrefix(definition.Platform);
-        //            entity.Add($"  state_topic: {prefix}/{definition.DeviceId}/1/hold");
-        //            entity.Add("  payload_on: held");
-        //            entity.Add("  payload_off: released");
-        //        }
-
-        //        return new[] {
-        //            FormatDefinition(addConfig, EntityType.BinarySensor, new SensorConfig {
-        //                Name = $"{definition.Name} hold",
-        //                Platform = definition.Platform,
-        //                DeviceId = definition.DeviceId,
-        //                DeviceName=definition.Name,
-        //                DeviceClass = sensor.DeviceClass,
-        //                Icon = sensor.Icon,
-        //            })
-        //        };
-        //    }
-        //    else if (sensor.Type == "button" || Regex.IsMatch(sensor.Type, @"\d+-button"))
-        //    {
-        //        var count = sensor.Type == "button" ? 1 : int.Parse(sensor.Type.Split('-').First());
-        //        var configs = new List<ConfigEntry>();
-        //        for (var i = 1; i <= count; i++)
-        //        {
-        //            void addConfig(List<string> entity)
-        //            {
-        //                var prefix = _configuration.GetPlatformPrefix(definition.Platform);
-        //                entity.Add($"  state_topic: {prefix}/{definition.DeviceId}/{i}/push");
-        //                entity.Add($"  payload_on: pushed");
-        //                entity.Add("  off_delay: 1");
-        //            }
-
-        //            var name = count == 1 ? definition.Name : $"{definition.Name} {i}";
-        //            configs.Add(FormatDefinition(addConfig, EntityType.BinarySensor, new SensorConfig
-        //            {
-        //                Name = name,
-        //                Platform = definition.Platform,
-        //                DeviceId = definition.DeviceId,
-        //                DeviceName = definition.Name,
-        //                DeviceClass = sensor.DeviceClass,
-        //                Icon = sensor.Icon,
-        //            }));
-        //        }
-
-        //        return configs;
-        //    }
-
-        //    throw new UnrecognizedTypeException(sensor.Type);
-        //}
-
         private ConfigEntry FormatSensorDefinition(string entityType, SensorConfig sensor)
         {
             void addConfig(List<string> entity)
@@ -430,6 +345,12 @@ namespace Cwm.HomeAssistant.Config.Services
                         entity.Add($"  state_topic: {prefix}/{sensor.DeviceId}/motion");
                         entity.Add("  payload_on: active");
                         entity.Add("  payload_off: inactive");
+                        break;
+                    case SensorType.Offline:
+                        entity.Add($"  device_class: {sensor.DeviceClass ?? "problem"}");
+                        entity.Add($"  state_topic: {prefix}/{sensor.DeviceId}/activity");
+                        entity.Add("  payload_on: inactive");
+                        entity.Add("  payload_off: active");
                         break;
                     case SensorType.Power:
                         if (sensor.DeviceClass != null)
