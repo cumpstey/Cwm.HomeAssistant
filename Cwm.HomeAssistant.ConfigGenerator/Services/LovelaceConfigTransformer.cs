@@ -67,10 +67,28 @@ namespace Cwm.HomeAssistant.Config.Services
 
                 model.Add(new FoldableRow
                 {
-                    Head = GetButtonActivityEntityId(device),
-                    Items = buttons.Select(i => GetButtonEntityId(i.Item1, i.Item2, device))
-                                   .OrderBy(i => i)
-                                   .ToArray(),
+                    Entity = GetButtonActivityEntityId(device),
+                    Entities = buttons.Select(i => {
+                        string name;
+                        switch (i.Item2)
+                        {
+                            case ButtonType.Hold:
+                            case ButtonType.HoldAndRelease:
+                                name = i.Item1.HasValue ? $"Button {i.Item1} hold" : "Hold";
+                                break;
+                            default:
+                                name = i.Item1.HasValue ? $"Button {i.Item1}" : "Push";
+                                break;
+
+                        }
+
+                        return new LovelaceEntity
+                        {
+                            Entity = GetButtonEntityId(i.Item1, i.Item2, device),
+                            Name = name,
+                        };
+                    }).OrderBy(i => i.Entity)
+                      .ToArray(),
                 });
             }
 

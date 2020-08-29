@@ -1,4 +1,6 @@
-﻿namespace Cwm.HomeAssistant.Config.Services
+﻿using System.Collections.Generic;
+
+namespace Cwm.HomeAssistant.Config.Services
 {
     public class SensorConfig
     {
@@ -41,5 +43,7 @@
         public string ThresholdAttribute { get; set; }
 
         public string ThresholdOnCondition { get; set; }
+
+        public Dictionary<string,string> Customize { get; set; }
     }
 }

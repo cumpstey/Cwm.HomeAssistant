@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using System.Linq;
 
 namespace Cwm.HomeAssistant.Config
 {
@@ -41,6 +42,24 @@ namespace Cwm.HomeAssistant.Config
                 {
                     Add(item.Key, value);
                 }
+            }
+        }
+
+        public void AddMany(string key, IEnumerable<T> values)
+        {
+            if (values == null || !values.Any())
+            {
+                return;
+            }
+
+            if (!TryGetValue(key, out HashSet<T> container))
+            {
+                this[key] = new HashSet<T>();
+            }
+
+            foreach (var value in values)
+            {
+                this[key].Add(value);
             }
         }
     }

@@ -99,11 +99,13 @@ namespace Cwm.HomeAssistant.ConfigTransformer.Services
 ".Trim());
 
             var expectedConfig = @"
-- type: custom:fold-entity-row
-  head: binary_sensor.test_button_active
-  items:
-  - binary_sensor.test_button
-  - binary_sensor.test_button_hold
+- type: custom:fold-entity-brick
+  entity: binary_sensor.test_button_active
+  entities:
+  - entity: binary_sensor.test_button
+    name: Push
+  - entity: binary_sensor.test_button_hold
+    name: Hold
 ".Trim();
 
             // Action
@@ -131,12 +133,15 @@ namespace Cwm.HomeAssistant.ConfigTransformer.Services
 ".Trim());
 
             var expectedConfig = @"
-- type: custom:fold-entity-row
-  head: binary_sensor.test_button_active
-  items:
-  - binary_sensor.test_button_1
-  - binary_sensor.test_button_2
-  - binary_sensor.test_button_3
+- type: custom:fold-entity-brick
+  entity: binary_sensor.test_button_active
+  entities:
+  - entity: binary_sensor.test_button_1
+    name: Button 1
+  - entity: binary_sensor.test_button_2
+    name: Button 2
+  - entity: binary_sensor.test_button_3
+    name: Button 3
 ".Trim();
 
             // Action
@@ -165,15 +170,21 @@ namespace Cwm.HomeAssistant.ConfigTransformer.Services
 ".Trim());
 
             var expectedConfig = @"
-- type: custom:fold-entity-row
-  head: binary_sensor.test_button_active
-  items:
-  - binary_sensor.test_button_1
-  - binary_sensor.test_button_1_hold
-  - binary_sensor.test_button_2
-  - binary_sensor.test_button_2_hold
-  - binary_sensor.test_button_3
-  - binary_sensor.test_button_3_hold
+- type: custom:fold-entity-brick
+  entity: binary_sensor.test_button_active
+  entities:
+  - entity: binary_sensor.test_button_1
+    name: Button 1
+  - entity: binary_sensor.test_button_1_hold
+    name: Button 1 hold
+  - entity: binary_sensor.test_button_2
+    name: Button 2
+  - entity: binary_sensor.test_button_2_hold
+    name: Button 2 hold
+  - entity: binary_sensor.test_button_3
+    name: Button 3
+  - entity: binary_sensor.test_button_3_hold
+    name: Button 3 hold
 ".Trim();
 
             // Action

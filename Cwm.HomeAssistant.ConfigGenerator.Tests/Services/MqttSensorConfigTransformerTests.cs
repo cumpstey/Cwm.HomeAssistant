@@ -3,6 +3,7 @@ using Cwm.HomeAssistant.Config.Initializtion;
 using Cwm.HomeAssistant.Config.Models;
 using Cwm.HomeAssistant.Config.Services;
 using NUnit.Framework;
+using System.Collections.Generic;
 using System.Linq;
 
 namespace Cwm.HomeAssistant.ConfigTransformer.Services
@@ -15,7 +16,7 @@ namespace Cwm.HomeAssistant.ConfigTransformer.Services
         public void Missing_deviceId_throws()
         {
             // Arrange
-            var transformer = new MqttSensorConfigTransformer(new DummyConfiguration());
+            var transformer = new MqttSensorConfigTransformer(new DummyConfiguration(), new DeviceTranslator());
             var definition = new DeviceDefinition
             {
                 Name = "Test device",
@@ -27,10 +28,10 @@ namespace Cwm.HomeAssistant.ConfigTransformer.Services
             Assert.Throws<ValidationException>(() => transformer.TransformConfig(definition));
         }
 
-        public void Unsupported_platform_throws(string type)
+        public void Unsupported_platform_throws()
         {
             // Arrange
-            var transformer = new MqttSensorConfigTransformer(new DummyConfiguration());
+            var transformer = new MqttSensorConfigTransformer(new DummyConfiguration(), new DeviceTranslator());
             var definition = new DeviceDefinition
             {
                 DeviceId = "Test device",
@@ -46,7 +47,7 @@ namespace Cwm.HomeAssistant.ConfigTransformer.Services
         public void Configured_platform_prefix_is_used()
         {
             // Arrange
-            var transformer = new MqttSensorConfigTransformer(new DummyConfiguration());
+            var transformer = new MqttSensorConfigTransformer(new DummyConfiguration(), new DeviceTranslator());
             var definition = new DeviceDefinition
             {
                 DeviceId = "Test sensor",
@@ -79,7 +80,7 @@ namespace Cwm.HomeAssistant.ConfigTransformer.Services
         public void Generated_name_is_as_expected(string sensorType, string entityType, string name)
         {
             // Arrange
-            var transformer = new MqttSensorConfigTransformer(new DummyConfiguration());
+            var transformer = new MqttSensorConfigTransformer(new DummyConfiguration(), new DeviceTranslator());
             var definition = new DeviceDefinition
             {
                 DeviceId = "Test multisensor",
@@ -108,7 +109,7 @@ namespace Cwm.HomeAssistant.ConfigTransformer.Services
         public void Multiple_entities_are_generated()
         {
             // Arrange
-            var transformer = new MqttSensorConfigTransformer(new DummyConfiguration());
+            var transformer = new MqttSensorConfigTransformer(new DummyConfiguration(), new DeviceTranslator());
             var definition = new DeviceDefinition
             {
                 DeviceId = "Test multisensor",
@@ -136,7 +137,7 @@ namespace Cwm.HomeAssistant.ConfigTransformer.Services
         public void Generated_name_with_apostrophe_is_as_expected()
         {
             // Arrange
-            var transformer = new MqttSensorConfigTransformer(new DummyConfiguration());
+            var transformer = new MqttSensorConfigTransformer(new DummyConfiguration(), new DeviceTranslator());
             var definition = new DeviceDefinition
             {
                 DeviceId = "Test user's button",
@@ -165,6 +166,39 @@ binary_sensor.test_users_button:
             Assert.AreEqual(expectedCustomization, config.Customization, "Customization declared as expected");
         }
 
+        [Test]
+        public void Customizations_as_expected()
+        {
+            // Arrange
+            var transformer = new MqttSensorConfigTransformer(new DummyConfiguration(), new DeviceTranslator());
+            var definition = new DeviceDefinition
+            {
+                DeviceId = "Test device",
+                Platform = "hubitat",
+                Sensors = new[] { new SensorDefinition {
+                    Type = "battery",
+                    Customize = new Dictionary<string, string>{ { "my_custom_attr", "The value" } },
+                } },
+            };
+            var expectedCustomization = $@"
+sensor.test_device_battery:
+  my_custom_attr: The value
+".Trim();
+
+            // Action
+            var result = transformer.TransformConfig(definition);
+
+            // Assert
+            Assert.AreEqual(1, result.Keys.Count, "One entity type returned");
+            Assert.AreEqual("sensor", result.Keys.First(), "The type of the entity returned is correct");
+            Assert.AreEqual(1, result["sensor"].Count, "Only one entity returned");
+
+            var config = result["sensor"].First();
+            //Assert.IsTrue(config.Entity.Contains(expectedPartialConfig), config.Entity, "Config declared as expected");
+
+            Assert.AreEqual(expectedCustomization, config.Customization, "Customization declared as expected");
+        }
+
         #endregion General
 
         #region Battery
@@ -173,7 +207,7 @@ binary_sensor.test_users_button:
         public void Battery_sensor_config_is_generated()
         {
             // Arrange
-            var transformer = new MqttSensorConfigTransformer(new DummyConfiguration());
+            var transformer = new MqttSensorConfigTransformer(new DummyConfiguration(), new DeviceTranslator());
             var definition = new DeviceDefinition
             {
                 DeviceId = "Test multisensor",
@@ -214,7 +248,7 @@ binary_sensor.test_users_button:
         public void Button_sensor_config_is_generated(string sensorType)
         {
             // Arrange
-            var transformer = new MqttSensorConfigTransformer(new DummyConfiguration());
+            var transformer = new MqttSensorConfigTransformer(new DummyConfiguration(), new DeviceTranslator());
             var definition = new DeviceDefinition
             {
                 DeviceId = "Test button",
@@ -247,7 +281,7 @@ binary_sensor.test_users_button:
         public void Multiple_button_sensor_config_is_generated()
         {
             // Arrange
-            var transformer = new MqttSensorConfigTransformer(new DummyConfiguration());
+            var transformer = new MqttSensorConfigTransformer(new DummyConfiguration(), new DeviceTranslator());
             var definition = new DeviceDefinition
             {
                 DeviceId = "Test button",
@@ -291,7 +325,7 @@ binary_sensor.test_users_button:
         public void Hold_button_sensor_config_is_generated()
         {
             // Arrange
-            var transformer = new MqttSensorConfigTransformer(new DummyConfiguration());
+            var transformer = new MqttSensorConfigTransformer(new DummyConfiguration(), new DeviceTranslator());
             var definition = new DeviceDefinition
             {
                 DeviceId = "Test button",
@@ -299,9 +333,9 @@ binary_sensor.test_users_button:
                 Sensors = new[] { new SensorDefinition { Type = "hold-button" } },
             };
             var expectedConfig = @"
-# Test button (hold), from hubitat via MQTT
+# Test button hold, from hubitat via MQTT
 - platform: mqtt
-  name: Test button (hold)
+  name: Test button hold
   state_topic: hubitat/Test button/1/hold
   payload_on: held
   off_delay: 1
@@ -320,21 +354,22 @@ binary_sensor.test_users_button:
             Assert.IsEmpty(config.Customization, "Customization declared as expected");
         }
 
-        [Test]
-        public void Hold_release_button_sensor_config_is_generated()
+        [TestCase("hold-release-button")]
+        [TestCase("1-hold-release-button")]
+        public void Hold_release_button_sensor_config_is_generated(string sensorType)
         {
             // Arrange
-            var transformer = new MqttSensorConfigTransformer(new DummyConfiguration());
+            var transformer = new MqttSensorConfigTransformer(new DummyConfiguration(), new DeviceTranslator());
             var definition = new DeviceDefinition
             {
                 DeviceId = "Test button",
                 Platform = "hubitat",
-                Sensors = new[] { new SensorDefinition { Type = "hold-release-button" } },
+                Sensors = new[] { new SensorDefinition { Type = sensorType } },
             };
             var expectedConfig = @"
-# Test button (hold), from hubitat via MQTT
+# Test button hold, from hubitat via MQTT
 - platform: mqtt
-  name: Test button (hold)
+  name: Test button hold
   state_topic: hubitat/Test button/1/hold
   payload_on: held
   payload_off: released
@@ -353,6 +388,50 @@ binary_sensor.test_users_button:
             Assert.IsEmpty(config.Customization, "Customization declared as expected");
         }
 
+        [Test]
+        public void Multiple_hold_release_button_sensor_config_is_generated()
+        {
+            // Arrange
+            var transformer = new MqttSensorConfigTransformer(new DummyConfiguration(), new DeviceTranslator());
+            var definition = new DeviceDefinition
+            {
+                DeviceId = "Test button",
+                Platform = "hubitat",
+                Sensors = new[] { new SensorDefinition { Type = "2-hold-release-button" } },
+            };
+            var expectedConfig = new[] { @"
+# Test button 1 hold, from hubitat via MQTT
+- platform: mqtt
+  name: Test button 1 hold
+  state_topic: hubitat/Test button/1/hold
+  payload_on: held
+  payload_off: released
+".Trim(), @"
+# Test button 2 hold, from hubitat via MQTT
+- platform: mqtt
+  name: Test button 2 hold
+  state_topic: hubitat/Test button/2/hold
+  payload_on: held
+  payload_off: released
+".Trim() };
+
+            // Action
+            var result = transformer.TransformConfig(definition);
+
+            // Assert
+            Assert.AreEqual(1, result.Keys.Count, "One entity type returned");
+            Assert.AreEqual("binary_sensor", result.Keys.First(), "The type of the entity returned is correct");
+            Assert.AreEqual(expectedConfig.Length, result["binary_sensor"].Count, "Correct number of entities returned");
+
+            var configs = result["binary_sensor"].Select(i => i.Entity).ToArray();
+            foreach (var expected in expectedConfig)
+            {
+                Assert.Contains(expected, configs, "Config declared as expected");
+            }
+
+            Assert.IsTrue(result["binary_sensor"].All(i => string.IsNullOrEmpty(i.Customization)), "Customization declared as expected");
+        }
+
         #endregion
 
         #region Contact
@@ -361,7 +440,7 @@ binary_sensor.test_users_button:
         public void Contact_sensor_config_is_generated()
         {
             // Arrange
-            var transformer = new MqttSensorConfigTransformer(new DummyConfiguration());
+            var transformer = new MqttSensorConfigTransformer(new DummyConfiguration(), new DeviceTranslator());
             var definition = new DeviceDefinition
             {
                 DeviceId = "Test contact",
@@ -394,7 +473,7 @@ binary_sensor.test_users_button:
         public void Contact_sensor_config_is_generated_with_device_class()
         {
             // Arrange
-            var transformer = new MqttSensorConfigTransformer(new DummyConfiguration());
+            var transformer = new MqttSensorConfigTransformer(new DummyConfiguration(), new DeviceTranslator());
             var definition = new DeviceDefinition
             {
                 DeviceId = "Test door",
@@ -432,7 +511,7 @@ binary_sensor.test_users_button:
         public void Illuminance_sensor_config_is_generated()
         {
             // Arrange
-            var transformer = new MqttSensorConfigTransformer(new DummyConfiguration());
+            var transformer = new MqttSensorConfigTransformer(new DummyConfiguration(), new DeviceTranslator());
             var definition = new DeviceDefinition
             {
                 DeviceId = "Test multisensor",
@@ -473,7 +552,7 @@ binary_sensor.test_users_button:
         public void Moisture_sensor_config_is_generated()
         {
             // Arrange
-            var transformer = new MqttSensorConfigTransformer(new DummyConfiguration());
+            var transformer = new MqttSensorConfigTransformer(new DummyConfiguration(), new DeviceTranslator());
             var definition = new DeviceDefinition
             {
                 DeviceId = "Test flood",
@@ -511,7 +590,7 @@ binary_sensor.test_users_button:
         public void Motion_sensor_config_is_generated()
         {
             // Arrange
-            var transformer = new MqttSensorConfigTransformer(new DummyConfiguration());
+            var transformer = new MqttSensorConfigTransformer(new DummyConfiguration(), new DeviceTranslator());
             var definition = new DeviceDefinition
             {
                 DeviceId = "Test multisensor",
@@ -550,7 +629,7 @@ binary_sensor.test_users_button:
         public void Power_sensor_config_is_generated()
         {
             // Arrange
-            var transformer = new MqttSensorConfigTransformer(new DummyConfiguration());
+            var transformer = new MqttSensorConfigTransformer(new DummyConfiguration(), new DeviceTranslator());
             var definition = new DeviceDefinition
             {
                 DeviceId = "Test meter",
@@ -586,7 +665,7 @@ binary_sensor.test_users_button:
         public void Power_cycle_sensor_config_is_generated()
         {
             // Arrange
-            var transformer = new MqttSensorConfigTransformer(new DummyConfiguration());
+            var transformer = new MqttSensorConfigTransformer(new DummyConfiguration(), new DeviceTranslator());
             var definition = new DeviceDefinition
             {
                 DeviceId = "Test meter",
@@ -618,7 +697,7 @@ binary_sensor.test_users_button:
         public void Missing_power_cycle_sensor_throws()
         {
             // Arrange
-            var transformer = new MqttSensorConfigTransformer(new DummyConfiguration());
+            var transformer = new MqttSensorConfigTransformer(new DummyConfiguration(), new DeviceTranslator());
             var definition = new DeviceDefinition
             {
                 DeviceId = "Test meter",
@@ -635,7 +714,7 @@ binary_sensor.test_users_button:
         public void Power_cycle_onoff_sensor_config_is_generated()
         {
             // Arrange
-            var transformer = new MqttSensorConfigTransformer(new DummyConfiguration());
+            var transformer = new MqttSensorConfigTransformer(new DummyConfiguration(), new DeviceTranslator());
             var definition = new DeviceDefinition
             {
                 DeviceId = "Test meter",
@@ -680,7 +759,7 @@ binary_sensor.test_device:
         public void Presence_sensor_config_is_generated()
         {
             // Arrange
-            var transformer = new MqttSensorConfigTransformer(new DummyConfiguration());
+            var transformer = new MqttSensorConfigTransformer(new DummyConfiguration(), new DeviceTranslator());
             var definition = new DeviceDefinition
             {
                 DeviceId = "Test presence",
@@ -718,7 +797,7 @@ binary_sensor.test_device:
         public void Scene_sensor_config_is_generated()
         {
             // Arrange
-            var transformer = new MqttSensorConfigTransformer(new DummyConfiguration());
+            var transformer = new MqttSensorConfigTransformer(new DummyConfiguration(), new DeviceTranslator());
             var definition = new DeviceDefinition
             {
                 DeviceId = "Test device",
@@ -754,7 +833,7 @@ binary_sensor.test_device:
         public void Temperature_sensor_config_is_generated()
         {
             // Arrange
-            var transformer = new MqttSensorConfigTransformer(new DummyConfiguration());
+            var transformer = new MqttSensorConfigTransformer(new DummyConfiguration(), new DeviceTranslator());
             var definition = new DeviceDefinition
             {
                 DeviceId = "Test multisensor",
@@ -795,7 +874,7 @@ binary_sensor.test_device:
         public void Missing_threshold_attribute_throws()
         {
             // Arrange
-            var transformer = new MqttSensorConfigTransformer(new DummyConfiguration());
+            var transformer = new MqttSensorConfigTransformer(new DummyConfiguration(), new DeviceTranslator());
             var definition = new DeviceDefinition
             {
                 DeviceId = "Test meter",
@@ -811,7 +890,7 @@ binary_sensor.test_device:
         public void Missing_threshold_condition_throws()
         {
             // Arrange
-            var transformer = new MqttSensorConfigTransformer(new DummyConfiguration());
+            var transformer = new MqttSensorConfigTransformer(new DummyConfiguration(), new DeviceTranslator());
             var definition = new DeviceDefinition
             {
                 DeviceId = "Test meter",
@@ -827,7 +906,7 @@ binary_sensor.test_device:
         public void Threshold_sensor_config_is_generated()
         {
             // Arrange
-            var transformer = new MqttSensorConfigTransformer(new DummyConfiguration());
+            var transformer = new MqttSensorConfigTransformer(new DummyConfiguration(), new DeviceTranslator());
             var definition = new DeviceDefinition
             {
                 DeviceId = "Test meter",

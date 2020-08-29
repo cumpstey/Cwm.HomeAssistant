@@ -24,7 +24,7 @@ namespace Cwm.HomeAssistant.Config.Initialization
             OutputFolder = outputFolder;
             PlatformPrefixes = platformPrefixes;
 
-            LowBatteryAlertThreshold = 15;
+            LowBatteryAlertThreshold = 50;
             MqttDevicesFolderName = "mqtt";
             LovelaceIncludesFolderName = @"lovelace\includes";
         }

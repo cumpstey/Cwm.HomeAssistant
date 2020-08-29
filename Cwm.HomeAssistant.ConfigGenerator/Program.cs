@@ -16,7 +16,7 @@ namespace Cwm.HomeAssistant.Config
             var mqttConfigGenerator = new MqttConfigGenerator(
                 filesystem,
                 new MqttActuatorConfigTransformer(configuration),
-                new MqttSensorConfigTransformer(configuration),
+                new MqttSensorConfigTransformer(configuration, deviceTranslator),
                 new TemplateSensorConfigTransformer(configuration, deviceTranslator));
             var lovelaceConfigGenerator = new LovelaceConfigGenerator(
                 filesystem,

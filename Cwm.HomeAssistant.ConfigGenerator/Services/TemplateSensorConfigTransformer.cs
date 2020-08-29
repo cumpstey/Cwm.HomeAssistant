@@ -54,7 +54,8 @@ namespace Cwm.HomeAssistant.Config.Services
                 throw new ValidationException($"{invalid.Count()} definitions missing a device id.");
             }
 
-            var lines = batteryDevices.Select(i => $"states('{GetSensorEntityId(SensorType.Battery, i)}') | float < battery_threshold");
+            var valueLines = batteryDevices.Select(i => $"states('{GetSensorEntityId(SensorType.Battery, i)}') | float <= battery_threshold");
+            var attributeLines = batteryDevices.Select(i => $"{{% if states('{GetSensorEntityId(SensorType.Battery, i)}') | float <= battery_threshold %}}<li>{{{{states.{GetSensorEntityId(SensorType.Battery, i)}.attributes.friendly_name}}}}</li>{{% endif %}}");
             var entity = $@"
 # Low battery alert
 - platform: template
@@ -63,8 +64,14 @@ namespace Cwm.HomeAssistant.Config.Services
       friendly_name: Low battery alert
       value_template: >
         {{% set battery_threshold = {_configuration.LowBatteryAlertThreshold} %}}
-        {{{{ {string.Join($"{Environment.NewLine}        or ", lines)}
+        {{{{ {string.Join($"{Environment.NewLine}        or ", valueLines)}
         }}}}
+      attribute_templates:
+        devicesHtml: >
+          {{% set battery_threshold = 50 %}}
+          <ul>
+          {string.Join($"{Environment.NewLine}          ", attributeLines)}
+          <ul>
 ".Trim();
 
             return new KeyedCollection<ConfigEntry>() { 

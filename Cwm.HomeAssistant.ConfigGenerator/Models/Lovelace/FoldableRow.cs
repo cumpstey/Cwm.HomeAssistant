@@ -6,11 +6,11 @@ namespace Cwm.HomeAssistant.Config.Models.Lovelace
     {
         #region Properties
 
-        public string Type { get { return "custom:fold-entity-row"; } }
+        public string Type { get { return "custom:fold-entity-brick"; } }
 
-        public string Head { get; set; }
+        public string Entity { get; set; }
 
-        public string[] Items { get; set; }
+        public LovelaceEntity[] Entities { get; set; }
 
         #endregion
     }

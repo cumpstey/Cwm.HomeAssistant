@@ -1,4 +1,6 @@
-﻿namespace Cwm.HomeAssistant.Config.Models
+﻿using System.Collections.Generic;
+
+namespace Cwm.HomeAssistant.Config.Models
 {
     /// <summary>
     /// Class representing a sensor belonging to a device.
@@ -28,5 +30,7 @@
         /// in the format: "[<>] number", eg "> 5".
         /// </summary>
         public string OnCondition { get; set; }
+
+        public Dictionary<string, string> Customize { get; set; }
     }
 }

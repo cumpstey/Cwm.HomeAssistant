@@ -29,7 +29,7 @@ namespace Cwm.HomeAssistant.Config.Services
 
         private IReadOnlyCollection<Tuple<int?, ButtonType>> GetButtonList(ButtonType buttonType, DeviceDefinition device)
         {
-            if(device.Sensors == null)
+            if (device.Sensors == null)
             {
                 return new Tuple<int?, ButtonType>[0];
             }
@@ -39,7 +39,8 @@ namespace Cwm.HomeAssistant.Config.Services
             var buttons = new List<Tuple<int?, ButtonType>>();
             foreach (var sensor in device.Sensors)
             {
-                if (sensor.Type == buttonTypeName)
+                // If there's only a single button we don't need to number it.
+                if (sensor.Type == buttonTypeName || sensor.Type == $"1-{buttonTypeName}")
                 {
                     buttons.Add(new Tuple<int?, ButtonType>(null, buttonType));
                 }
