@@ -6,7 +6,7 @@ namespace Cwm.HomeAssistant.Config.Models.Lovelace
     {
         #region Properties
 
-        public string Type { get { return "custom:fold-entity-brick"; } }
+        public string Type { get { return "custom:fold-entity-brick-dev"; } }
 
         public string Entity { get; set; }
 

@@ -44,9 +44,17 @@ namespace Cwm.HomeAssistant.Config.Services
                         ? $"{definition.DeviceId} battery"
                     : sensorType == SensorType.PowerCycle
                         ? $"{definition.Name} cycle"
-                    : new[] { SensorType.Button, SensorType.Contact, SensorType.Moisture, SensorType.Presence }.Contains(sensorType)
+                    : definition.Name.ToLower().EndsWith(sensorType)
                         ? definition.Name
                     : $"{definition.Name} {sensorType}";
+            return name;
+        }
+
+        protected string GetSensorFriendlyName(string sensorType, DeviceDefinition definition)
+        {
+            var name = new[] { SensorType.Contact, SensorType.Moisture }.Contains(sensorType)
+                ? definition.Name
+                : GetSensorName(sensorType, definition);
             return name;
         }
 
@@ -109,6 +117,7 @@ namespace Cwm.HomeAssistant.Config.Services
                 case SensorType.Motion:
                 case SensorType.Offline:
                 case SensorType.Presence:
+                case SensorType.Smoke:
                     return EntityType.BinarySensor;
                 default:
                     return EntityType.Sensor;

@@ -112,6 +112,16 @@ namespace Cwm.HomeAssistant.Config.Services
 
                     // Generate a reasonably human-friendly name, depending on the type of sensor.
                     var name = GetSensorName(sensor.Type, definition);
+                    var friendlyName = GetSensorFriendlyName(sensor.Type, definition);
+                    if (friendlyName != name && (sensor.Customize == null || !sensor.Customize.ContainsKey("friendly_name")))
+                    {
+                        if (sensor.Customize == null)
+                        {
+                            sensor.Customize = new Dictionary<string, string>();
+                        }
+
+                        sensor.Customize.Add("friendly_name", friendlyName);
+                    }
 
                     // Identify sensors which are set by Home Assistant
                     var platform = new[] { SensorType.PowerCycle }.Contains(sensor.Type)
@@ -157,7 +167,7 @@ namespace Cwm.HomeAssistant.Config.Services
             entity.Add($"# {sensor.Name}, from {sensor.Platform} via MQTT");
             entity.Add("- platform: mqtt");
 
-            if (sensor.Name.Contains("'"))
+            if (sensor.Name.Contains("'") && (sensor.Customize == null || !sensor.Customize.ContainsKey("friendly_name")))
             {
                 entity.Add($"  name: {sensor.Name.Replace("'", string.Empty)}");
                 customization.Add($"  friendly_name: {sensor.Name}");
@@ -375,6 +385,14 @@ namespace Cwm.HomeAssistant.Config.Services
                     case SensorType.Scene:
                         entity.Add($"  state_topic: {prefix}/{sensor.DeviceId}/scene");
                         entity.Add("  force_update: true");
+                        break;
+                    case SensorType.Smoke:
+                        entity.Add($"  device_class: {sensor.DeviceClass ?? "smoke"}");
+                        entity.Add($"  state_topic: {prefix}/{sensor.DeviceId}/smoke");
+                        entity.Add("  value_template: >");
+                        entity.Add("    {%if value == 'clear'-%}clear{%-else-%}smoke{%-endif%}");
+                        entity.Add("  payload_on: smoke");
+                        entity.Add("  payload_off: clear");
                         break;
                     case SensorType.Temperature:
                         entity.Add($"  device_class: {sensor.DeviceClass ?? "temperature"}");

@@ -66,6 +66,11 @@
         public const string Scene = "scene";
 
         /// <summary>
+        /// Smoke sensor.
+        /// </summary>
+        public const string Smoke = "smoke";
+
+        /// <summary>
         /// Temperature sensor.
         /// </summary>
         public const string Temperature = "temperature";
