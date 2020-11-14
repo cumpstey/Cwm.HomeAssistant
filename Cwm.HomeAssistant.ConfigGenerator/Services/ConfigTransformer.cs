@@ -38,8 +38,8 @@ namespace Cwm.HomeAssistant.Config.Services
         /// <returns>The name of the entity to be used in Home Assistant</returns>
         protected string GetSensorName(string sensorType, DeviceDefinition definition)
         {
-            var name = sensorType == SensorType.Offline
-                        ? $"{definition.DeviceId} offline"
+            var name = sensorType == SensorType.Connectivity
+                        ? $"{definition.DeviceId} connectivity"
                     : sensorType == SensorType.Battery
                         ? $"{definition.DeviceId} battery"
                     : sensorType == SensorType.PowerCycle
@@ -90,7 +90,7 @@ namespace Cwm.HomeAssistant.Config.Services
 
         protected string GetButtonActivitySensorId(DeviceDefinition definition)
         {
-            var name = GetSensorName(SensorType.Button, definition);
+            var name = definition.Name;
             var id = FormatAsId($"{name} active");
             return id;
         }
@@ -112,10 +112,10 @@ namespace Cwm.HomeAssistant.Config.Services
             switch (sensorType)
             {
                 case SensorType.Button:
+                case SensorType.Connectivity:
                 case SensorType.Contact:
                 case SensorType.Moisture:
                 case SensorType.Motion:
-                case SensorType.Offline:
                 case SensorType.Presence:
                 case SensorType.Smoke:
                     return EntityType.BinarySensor;

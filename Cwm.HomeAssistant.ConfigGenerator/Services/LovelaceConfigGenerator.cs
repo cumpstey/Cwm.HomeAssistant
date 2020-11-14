@@ -51,7 +51,7 @@ namespace Cwm.HomeAssistant.Config.Services
             var devices = await GetDeviceDefinitionsAsync(sourceDirectory);
 
             await UpdateEntitiesConfigAsync(SensorType.Battery, outputDirectory, devices);
-            await UpdateEntitiesConfigAsync(SensorType.Offline, outputDirectory, devices);
+            await UpdateEntitiesConfigAsync(SensorType.Connectivity, outputDirectory, devices);
             await UpdateButtonsConfigAsync(outputDirectory, devices);
         }
 

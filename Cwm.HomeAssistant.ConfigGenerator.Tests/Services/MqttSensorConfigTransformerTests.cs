@@ -329,6 +329,50 @@ sensor.test_device_battery:
         }
 
         [Test]
+        public void Multiple_button_sensor_config_is_generated_with_alternative_name()
+        {
+            // Arrange
+            var transformer = new MqttSensorConfigTransformer(new DummyConfiguration(), new DeviceTranslator());
+            var definition = new DeviceDefinition
+            {
+                DeviceId = "Test controller",
+                Platform = "hubitat",
+                Sensors = new[] { new SensorDefinition { Type = "2-button" } },
+            };
+            var expectedConfig = new[] { @"
+# Test controller button 1, from hubitat via MQTT
+- platform: mqtt
+  name: Test controller button 1
+  state_topic: hubitat/Test controller/1/push
+  payload_on: pushed
+  off_delay: 1
+".Trim(), @"
+# Test controller button 2, from hubitat via MQTT
+- platform: mqtt
+  name: Test controller button 2
+  state_topic: hubitat/Test controller/2/push
+  payload_on: pushed
+  off_delay: 1
+".Trim() };
+
+            // Action
+            var result = transformer.TransformConfig(definition);
+
+            // Assert
+            Assert.AreEqual(1, result.Keys.Count, "One entity type returned");
+            Assert.AreEqual("binary_sensor", result.Keys.First(), "The type of the entity returned is correct");
+            Assert.AreEqual(expectedConfig.Length, result["binary_sensor"].Count, "Correct number of entities returned");
+
+            var configs = result["binary_sensor"].Select(i => i.Entity).ToArray();
+            foreach (var expected in expectedConfig)
+            {
+                Assert.Contains(expected, configs, "Config declared as expected");
+            }
+
+            Assert.IsTrue(result["binary_sensor"].All(i => string.IsNullOrEmpty(i.Customization)), "Customization declared as expected");
+        }
+
+        [Test]
         public void Hold_button_sensor_config_is_generated()
         {
             // Arrange
@@ -637,10 +681,10 @@ binary_sensor.test_flood_moisture:
 
         #endregion
 
-        #region Offline
+        #region Connectivity
 
         [Test]
-        public void Offline_sensor_config_is_generated()
+        public void Connectivity_sensor_config_is_generated()
         {
             // Arrange
             var transformer = new MqttSensorConfigTransformer(new DummyConfiguration(), new DeviceTranslator());
@@ -648,16 +692,16 @@ binary_sensor.test_flood_moisture:
             {
                 DeviceId = "Test multisensor",
                 Platform = "hubitat",
-                Sensors = new[] { new SensorDefinition { Type = "offline" } },
+                Sensors = new[] { new SensorDefinition { Type = "connectivity" } },
             };
             var expectedConfig = @"
-# Test multisensor offline, from hubitat via MQTT
+# Test multisensor connectivity, from hubitat via MQTT
 - platform: mqtt
-  name: Test multisensor offline
-  device_class: problem
+  name: Test multisensor connectivity
+  device_class: connectivity
   state_topic: hubitat/Test multisensor/activity
-  payload_on: inactive
-  payload_off: active
+  payload_on: active
+  payload_off: inactive
 ".Trim();
 
             // Action

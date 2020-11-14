@@ -40,10 +40,9 @@ namespace Cwm.HomeAssistant.Config.Services
 
         /// <summary>
         /// Generates a low battery alert template sensor using all the
-        /// battery sensors in th list of devices.
+        /// battery sensors in the list of devices.
         /// </summary>
         /// <param name="devices">List of device definitions</param>
-        /// <returns>A collection of config entries with a single item</returns>
         public KeyedCollection<ConfigEntry> GetLowBatteryAlertSensor(IEnumerable<DeviceDefinition> devices)
         {
             var batteryDevices = devices.Where(d => d.Sensors != null && d.Sensors.Any(s => s.Type == SensorType.Battery));
@@ -74,7 +73,45 @@ namespace Cwm.HomeAssistant.Config.Services
           <ul>
 ".Trim();
 
-            return new KeyedCollection<ConfigEntry>() { 
+            return new KeyedCollection<ConfigEntry>() {
+                { EntityType.BinarySensor, new ConfigEntry { Entity = entity, Customization = string.Empty } }
+            };
+        }
+
+        /// <summary>
+        /// Generates a device offline alert template sensor using all the
+        /// offline sensors in the list of devices.
+        /// </summary>
+        /// <param name="devices">List of device definitions</param>
+        public KeyedCollection<ConfigEntry> GetDeviceOfflineAlertSensor(IEnumerable<DeviceDefinition> devices)
+        {
+            var connectivityDevices = devices.Where(d => d.Sensors != null && d.Sensors.Any(s => s.Type == SensorType.Connectivity));
+
+            var invalid = connectivityDevices.Where(d => string.IsNullOrWhiteSpace(d.DeviceId));
+            if (invalid.Any())
+            {
+                throw new ValidationException($"{invalid.Count()} definitions missing a device id.");
+            }
+
+            var valueLines = connectivityDevices.Select(i => $"is_state('{GetSensorEntityId(SensorType.Connectivity, i)}', 'off')");
+            var attributeLines = connectivityDevices.Select(i => $"{{% if is_state('{GetSensorEntityId(SensorType.Connectivity, i)}', 'off') %}}<li>{{{{states.{GetSensorEntityId(SensorType.Connectivity, i)}.attributes.friendly_name}}}}</li>{{% endif %}}");
+            var entity = $@"
+# Device offline alert
+- platform: template
+  sensors:
+    device_offline_alert:
+      friendly_name: Device offline alert
+      value_template: >
+        {{{{ {string.Join($"{Environment.NewLine}        or ", valueLines)}
+        }}}}
+      attribute_templates:
+        devicesHtml: >
+          <ul>
+          {string.Join($"{Environment.NewLine}          ", attributeLines)}
+          <ul>
+".Trim();
+
+            return new KeyedCollection<ConfigEntry>() {
                 { EntityType.BinarySensor, new ConfigEntry { Entity = entity, Customization = string.Empty } }
             };
         }

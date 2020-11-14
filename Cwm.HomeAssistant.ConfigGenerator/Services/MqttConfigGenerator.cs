@@ -72,6 +72,7 @@ namespace Cwm.HomeAssistant.Config.Services
             }
 
             configs.Add(_templateSensorTransformer.GetLowBatteryAlertSensor(definitions));
+            configs.Add(_templateSensorTransformer.GetDeviceOfflineAlertSensor(definitions));
 
             foreach (var key in configs.Keys)
             {

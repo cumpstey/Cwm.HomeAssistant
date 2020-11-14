@@ -260,7 +260,7 @@ namespace Cwm.HomeAssistant.Config.Services
                         entity.Add("  off_delay: 1");
                     }
 
-                    var name = button.Item1.HasValue ? $"{definition.Name} {button.Item1}" : definition.Name;
+                    var name = button.Item1.HasValue ? $"{GetSensorName(SensorType.Button, definition)} {button.Item1}" : definition.Name;
                     configs.Add(FormatDefinition(addConfig, EntityType.BinarySensor, new SensorConfig
                     {
                         Name = name,
@@ -281,7 +281,7 @@ namespace Cwm.HomeAssistant.Config.Services
                         entity.Add("  off_delay: 1");
                     }
 
-                    var name = button.Item1.HasValue ? $"{definition.Name} {button.Item1} hold" : $"{definition.Name} hold";
+                    var name = button.Item1.HasValue ? $"{GetSensorName(SensorType.Button, definition)} {button.Item1} hold" : $"{definition.Name} hold";
                     configs.Add(FormatDefinition(addConfig, EntityType.BinarySensor, new SensorConfig
                     {
                         Name = name,
@@ -300,7 +300,7 @@ namespace Cwm.HomeAssistant.Config.Services
                         entity.Add("  payload_off: released");
                     }
 
-                    var name = button.Item1.HasValue ? $"{definition.Name} {button.Item1} hold" : $"{definition.Name} hold";
+                    var name = button.Item1.HasValue ? $"{GetSensorName(SensorType.Button, definition)} {button.Item1} hold" : $"{definition.Name} hold";
                     configs.Add(FormatDefinition(addConfig, EntityType.BinarySensor, new SensorConfig
                     {
                         Name = name,
@@ -356,11 +356,11 @@ namespace Cwm.HomeAssistant.Config.Services
                         entity.Add("  payload_on: active");
                         entity.Add("  payload_off: inactive");
                         break;
-                    case SensorType.Offline:
-                        entity.Add($"  device_class: {sensor.DeviceClass ?? "problem"}");
+                    case SensorType.Connectivity:
+                        entity.Add($"  device_class: {sensor.DeviceClass ?? "connectivity"}");
                         entity.Add($"  state_topic: {prefix}/{sensor.DeviceId}/activity");
-                        entity.Add("  payload_on: inactive");
-                        entity.Add("  payload_off: active");
+                        entity.Add("  payload_on: active");
+                        entity.Add("  payload_off: inactive");
                         break;
                     case SensorType.Power:
                         if (sensor.DeviceClass != null)

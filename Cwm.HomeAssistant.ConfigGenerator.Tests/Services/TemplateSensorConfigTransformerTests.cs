@@ -78,6 +78,73 @@ namespace Cwm.HomeAssistant.ConfigTransformer.Services
 
         #endregion
 
+        #region Device offline alert
+
+        [Test]
+        public void Device_offline_alert_sensor_config_is_generated()
+        {
+            // Arrange
+            var transformer = new TemplateSensorConfigTransformer(new DummyConfiguration { }, new DeviceTranslator());
+            var definitions = new[] {
+                new DeviceDefinition
+                {
+                    DeviceId = "Test device 1",
+                    Platform = "hubitat",
+                    Sensors = new[] {
+                        new SensorDefinition { Type = "connectivity" }
+                    },
+                },
+                new DeviceDefinition
+                {
+                    DeviceId = "Test device 2",
+                    Platform = "hubitat",
+                    Sensors = new[] {
+                        new SensorDefinition { Type = "connectivity" },
+                        new SensorDefinition { Type = "motion" },
+                    },
+                },
+                new DeviceDefinition
+                {
+                    DeviceId = "Test device 3",
+                    Platform = "hubitat",
+                    Sensors = new[] {
+                        new SensorDefinition { Type = "motion" }
+                    },
+                },
+            };
+            var expectedConfig = @"
+# Device offline alert
+- platform: template
+  sensors:
+    device_offline_alert:
+      friendly_name: Device offline alert
+      value_template: >
+        {{ is_state('binary_sensor.test_device_1_connectivity', 'off')
+        or is_state('binary_sensor.test_device_2_connectivity', 'off')
+        }}
+      attribute_templates:
+        devicesHtml: >
+          <ul>
+          {% if is_state('binary_sensor.test_device_1_connectivity', 'off') %}<li>{{states.binary_sensor.test_device_1_connectivity.attributes.friendly_name}}</li>{% endif %}
+          {% if is_state('binary_sensor.test_device_2_connectivity', 'off') %}<li>{{states.binary_sensor.test_device_2_connectivity.attributes.friendly_name}}</li>{% endif %}
+          <ul>
+".Trim();
+
+            // Action
+            var result = transformer.GetDeviceOfflineAlertSensor(definitions);
+
+            // Assert
+            Assert.AreEqual(1, result.Keys.Count, "One entity type returned");
+            Assert.AreEqual("binary_sensor", result.Keys.First(), "The type of the entity returned is correct");
+            Assert.AreEqual(1, result["binary_sensor"].Count, "Only one entity returned");
+
+            var config = result["binary_sensor"].First();
+            Assert.AreEqual(expectedConfig, config.Entity, "Config declared as expected");
+            Assert.IsEmpty(config.Customization, "Customization declared as expected");
+        }
+
+        #endregion
+
         #region Button activity
 
         [Test]

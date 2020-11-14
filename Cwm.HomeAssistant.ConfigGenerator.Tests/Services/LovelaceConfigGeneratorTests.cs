@@ -99,7 +99,7 @@ namespace Cwm.HomeAssistant.ConfigTransformer.Services
 ".Trim());
 
             var expectedConfig = @"
-- type: custom:fold-entity-brick
+- type: custom:fold-entity-brick-dev
   entity: binary_sensor.test_button_active
   entities:
   - entity: binary_sensor.test_button
@@ -133,7 +133,7 @@ namespace Cwm.HomeAssistant.ConfigTransformer.Services
 ".Trim());
 
             var expectedConfig = @"
-- type: custom:fold-entity-brick
+- type: custom:fold-entity-brick-dev
   entity: binary_sensor.test_button_active
   entities:
   - entity: binary_sensor.test_button_1
@@ -141,6 +141,42 @@ namespace Cwm.HomeAssistant.ConfigTransformer.Services
   - entity: binary_sensor.test_button_2
     name: Button 2
   - entity: binary_sensor.test_button_3
+    name: Button 3
+".Trim();
+
+            // Action
+            Task.WaitAll(generator.GenerateConfigAsync(@"Z:\source", @"Z:\output"));
+            var generatedConfig = filesystem.ReadFileAsync(@"Z:\output\button-entities.yaml").Result;
+
+            // Assert
+            Assert.AreEqual(expectedConfig, generatedConfig.Trim(), "Config declared as expected");
+        }
+
+        [Test]
+        public void Button_entities_with_multiple_buttons_with_alternative_name()
+        {
+            // Arrange
+            var filesystem = new DummyFilesystem();
+            var transformer = new LovelaceConfigTransformer(new DeviceTranslator());
+            var generator = new LovelaceConfigGenerator(filesystem, transformer);
+
+            filesystem.WriteFileAsync(@"Z:\source\devices.yaml", @"
+# My test button
+- deviceId: Test controller
+  platform: hubitat
+  sensors:
+  - type: 3-button
+".Trim());
+
+            var expectedConfig = @"
+- type: custom:fold-entity-brick-dev
+  entity: binary_sensor.test_controller_active
+  entities:
+  - entity: binary_sensor.test_controller_button_1
+    name: Button 1
+  - entity: binary_sensor.test_controller_button_2
+    name: Button 2
+  - entity: binary_sensor.test_controller_button_3
     name: Button 3
 ".Trim();
 
@@ -170,7 +206,7 @@ namespace Cwm.HomeAssistant.ConfigTransformer.Services
 ".Trim());
 
             var expectedConfig = @"
-- type: custom:fold-entity-brick
+- type: custom:fold-entity-brick-dev
   entity: binary_sensor.test_button_active
   entities:
   - entity: binary_sensor.test_button_1
@@ -200,7 +236,7 @@ namespace Cwm.HomeAssistant.ConfigTransformer.Services
         #region Offline entities
 
         [Test]
-        public void Offline_entities_file_is_generated()
+        public void Connectivity_entities_file_is_generated()
         {
             // Arrange
             var filesystem = new DummyFilesystem();
@@ -212,32 +248,32 @@ namespace Cwm.HomeAssistant.ConfigTransformer.Services
 - deviceId: Test device
   platform: hubitat
   sensors:
-  - type: offline
+  - type: connectivity
 ".Trim());
 
             var expectedConfig = @"
-- entity: binary_sensor.test_device_offline
+- entity: binary_sensor.test_device_connectivity
   name: Test device
 ".Trim();
 
             // Action
             Task.WaitAll(generator.GenerateConfigAsync(@"Z:\source", @"Z:\output"));
-            var generatedConfig = filesystem.ReadFileAsync(@"Z:\output\offline-entities.yaml").Result;
+            var generatedConfig = filesystem.ReadFileAsync(@"Z:\output\connectivity-entities.yaml").Result;
 
             // Assert
             Assert.AreEqual(expectedConfig, generatedConfig.Trim(), "Config declared as expected");
         }
 
         [Test]
-        public void Offline_entities_existing_entries_are_retained()
+        public void Connectivity_entities_existing_entries_are_retained()
         {
             // Arrange
             var filesystem = new DummyFilesystem();
             var transformer = new LovelaceConfigTransformer(new DeviceTranslator());
             var generator = new LovelaceConfigGenerator(filesystem, transformer);
 
-            filesystem.WriteFileAsync(@"Z:\output\offline-entities.yaml", @"
-- entity: binary_sensor.my_existing_device_offline
+            filesystem.WriteFileAsync(@"Z:\output\connectivity-entities.yaml", @"
+- entity: binary_sensor.my_existing_device_connectivity
   name: My existing device
 ");
 
@@ -246,19 +282,19 @@ namespace Cwm.HomeAssistant.ConfigTransformer.Services
 - deviceId: Test device
   platform: hubitat
   sensors:
-  - type: offline
+  - type: connectivity
 ".Trim());
 
             var expectedConfig = @"
-- entity: binary_sensor.my_existing_device_offline
+- entity: binary_sensor.my_existing_device_connectivity
   name: My existing device
-- entity: binary_sensor.test_device_offline
+- entity: binary_sensor.test_device_connectivity
   name: Test device
 ".Trim();
 
             // Action
             Task.WaitAll(generator.GenerateConfigAsync(@"Z:\source", @"Z:\output"));
-            var generatedConfig = filesystem.ReadFileAsync(@"Z:\output\offline-entities.yaml").Result;
+            var generatedConfig = filesystem.ReadFileAsync(@"Z:\output\connectivity-entities.yaml").Result;
 
             // Assert
             Assert.AreEqual(expectedConfig, generatedConfig.Trim(), "Config declared as expected");

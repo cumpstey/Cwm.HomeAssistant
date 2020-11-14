@@ -16,6 +16,11 @@
         public const string Button = "button";
 
         /// <summary>
+        /// Device connectivity sensor.
+        /// </summary>
+        public const string Connectivity = "connectivity";
+
+        /// <summary>
         /// Contact sensor.
         /// </summary>
         public const string Contact = "contact";
@@ -34,11 +39,6 @@
         /// Motion sensor.
         /// </summary>
         public const string Motion = "motion";
-
-        /// <summary>
-        /// Device offline sensor.
-        /// </summary>
-        public const string Offline = "offline";
 
         /// <summary>
         /// Power sensor.
