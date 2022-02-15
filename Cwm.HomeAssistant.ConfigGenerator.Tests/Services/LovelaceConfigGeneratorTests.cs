@@ -99,7 +99,7 @@ namespace Cwm.HomeAssistant.ConfigTransformer.Services
 ".Trim());
 
             var expectedConfig = @"
-- type: custom:fold-entity-brick-dev
+- type: custom:fold-entity-row
   entity: binary_sensor.test_button_active
   entities:
   - entity: binary_sensor.test_button
@@ -133,7 +133,7 @@ namespace Cwm.HomeAssistant.ConfigTransformer.Services
 ".Trim());
 
             var expectedConfig = @"
-- type: custom:fold-entity-brick-dev
+- type: custom:fold-entity-row
   entity: binary_sensor.test_button_active
   entities:
   - entity: binary_sensor.test_button_1
@@ -169,7 +169,7 @@ namespace Cwm.HomeAssistant.ConfigTransformer.Services
 ".Trim());
 
             var expectedConfig = @"
-- type: custom:fold-entity-brick-dev
+- type: custom:fold-entity-row
   entity: binary_sensor.test_controller_active
   entities:
   - entity: binary_sensor.test_controller_button_1
@@ -206,7 +206,7 @@ namespace Cwm.HomeAssistant.ConfigTransformer.Services
 ".Trim());
 
             var expectedConfig = @"
-- type: custom:fold-entity-brick-dev
+- type: custom:fold-entity-row
   entity: binary_sensor.test_button_active
   entities:
   - entity: binary_sensor.test_button_1

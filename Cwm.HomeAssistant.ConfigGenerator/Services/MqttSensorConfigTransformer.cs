@@ -101,7 +101,7 @@ namespace Cwm.HomeAssistant.Config.Services
                     {
                         Name = definition.Name,
                         Icon = sensor.Icon,
-                        ValueTemplate = $"states.{GetSensorEntityId(SensorType.PowerCycle, definition)}.state not in ['unknown','off']",
+                        ValueTemplate = $"states('{GetSensorEntityId(SensorType.PowerCycle, definition)}') not in ['unknown','off']",
                     });
                     configs.Add(EntityType.BinarySensor, config);
                 }

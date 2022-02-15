@@ -74,6 +74,35 @@ namespace Cwm.HomeAssistant.ConfigTransformer.Services
             Assert.IsEmpty(config.Customization, "Customization declared as expected");
         }
 
+        [Test]
+        public void Apostrophe_is_ignored_for_device_id()
+        {
+            // Arrange
+            var transformer = new MqttActuatorConfigTransformer(new DummyConfiguration());
+            var definition = new DeviceDefinition
+            {
+                DeviceId = "Test's switch",
+                Platform = "smartthings",
+                Actuators = new[] { new ActuatorDefinition { Type = "switch" } },
+            };
+            var expectedPartialConfig = @"
+  name: Test's switch
+  object_id: Tests switch
+".Trim();
+
+            // Action
+            var result = transformer.TransformConfig(definition);
+
+            // Assert
+            Assert.AreEqual(1, result.Keys.Count, "One entity type returned");
+            Assert.AreEqual("switch", result.Keys.First(), "The type of the entity returned is correct");
+            Assert.AreEqual(1, result["switch"].Count, "Only one entity returned");
+
+            var config = result["switch"].First();
+            Assert.IsTrue(config.Entity.Contains(expectedPartialConfig), config.Entity, "Config declared as expected");
+            Assert.IsEmpty(config.Customization, "Customization declared as expected");
+        }
+
         #endregion General
 
         #region Switch

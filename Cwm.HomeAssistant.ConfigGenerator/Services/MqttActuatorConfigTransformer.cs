@@ -100,7 +100,8 @@ namespace Cwm.HomeAssistant.Config.Services
             entity.Add($"# {definition.Name}, from {definition.Platform} via MQTT");
 
             entity.Add("- platform: mqtt");
-            entity.Add($"  name: {definition.Name}");
+            entity.AddRange(this.GetEntityNameLines(definition.Name));
+
             entity.Add("  retain: true");
 
             if (definition.Icon != null)
@@ -156,7 +157,7 @@ namespace Cwm.HomeAssistant.Config.Services
             entity.Add($"# {definition.Name}, from {definition.Platform} via MQTT");
 
             entity.Add("- platform: mqtt");
-            entity.Add($"  name: {definition.Name}");
+                        entity.AddRange(this.GetEntityNameLines(definition.Name));
             entity.Add("  retain: true");
 
             if (definition.Icon != null)
@@ -208,7 +209,7 @@ namespace Cwm.HomeAssistant.Config.Services
             entity.Add($"# {definition.Name}, from {definition.Platform} via MQTT");
 
             entity.Add("- platform: mqtt");
-            entity.Add($"  name: {definition.Name}");
+                        entity.AddRange(this.GetEntityNameLines(definition.Name));
 
             if (definition.Icon != null)
             {
@@ -245,6 +246,20 @@ namespace Cwm.HomeAssistant.Config.Services
                 Entity = string.Join(Environment.NewLine, entity),
                 Customization = string.Join(Environment.NewLine, customization),
             };
+        }
+
+        private List<string> GetEntityNameLines(string name)
+        {
+            var lines = new List<string>
+            {
+                $"  name: {name}"
+            };
+            if (name.Contains("'"))
+            {
+                lines.Add($"  object_id: {name.Replace("'", "")}");
+            }
+
+            return lines;
         }
 
         #endregion

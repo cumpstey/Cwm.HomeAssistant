@@ -51,15 +51,15 @@ namespace Cwm.HomeAssistant.ConfigTransformer.Services
       friendly_name: Low battery alert
       value_template: >
         {% set battery_threshold = 14 %}
-        {{ states('sensor.test_device_1_battery') | float <= battery_threshold
-        or states('sensor.test_device_2_battery') | float <= battery_threshold
+        {{ states('sensor.test_device_1_battery') | float(0) <= battery_threshold
+        or states('sensor.test_device_2_battery') | float(0) <= battery_threshold
         }}
       attribute_templates:
         devicesHtml: >
           {% set battery_threshold = 50 %}
           <ul>
-          {% if states('sensor.test_device_1_battery') | float <= battery_threshold %}<li>{{states.sensor.test_device_1_battery.attributes.friendly_name}}</li>{% endif %}
-          {% if states('sensor.test_device_2_battery') | float <= battery_threshold %}<li>{{states.sensor.test_device_2_battery.attributes.friendly_name}}</li>{% endif %}
+          {% if states('sensor.test_device_1_battery') | float(0) <= battery_threshold %}<li>{{states.sensor.test_device_1_battery.attributes.friendly_name}}</li>{% endif %}
+          {% if states('sensor.test_device_2_battery') | float(0) <= battery_threshold %}<li>{{states.sensor.test_device_2_battery.attributes.friendly_name}}</li>{% endif %}
           <ul>
 ".Trim();
 

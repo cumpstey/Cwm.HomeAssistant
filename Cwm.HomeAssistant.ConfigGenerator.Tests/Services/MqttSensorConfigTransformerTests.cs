@@ -827,7 +827,7 @@ binary_sensor.test_flood_moisture:
   sensors:
     test_device:
       value_template: >
-        {{states.sensor.test_device_cycle.state not in ['unknown','off']}}
+        {{states('sensor.test_device_cycle') not in ['unknown','off']}}
 ".Trim();
             var expectedCustomization = @"
 binary_sensor.test_device:
