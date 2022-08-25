@@ -88,7 +88,7 @@ namespace Cwm.HomeAssistant.Config.Services
                         ThresholdOnCondition = sensor.OnCondition,
                         Customize = sensor.Customize,
                     });
-                    configs.Add(EntityType.BinarySensor, config);
+                    configs.Add($"mqtt.{EntityType.BinarySensor}", config);
                 }
                 else if (sensor.Type == SensorType.PowerCycleOnOff)
                 {
@@ -139,12 +139,12 @@ namespace Cwm.HomeAssistant.Config.Services
                         Icon = sensor.Icon,
                         Customize = sensor.Customize,
                     });
-                    configs.Add(entityType, config);
+                    configs.Add($"mqtt.{entityType}", config);
                 }
             }
 
             var buttonConfigs = ProcessButtonDefinition(definition);
-            configs.AddMany(EntityType.BinarySensor, buttonConfigs);
+            configs.AddMany($"mqtt.{EntityType.BinarySensor}", buttonConfigs);
 
             return configs;
         }
@@ -165,16 +165,15 @@ namespace Cwm.HomeAssistant.Config.Services
             var customization = new List<string>();
 
             entity.Add($"# {sensor.Name}, from {sensor.Platform} via MQTT");
-            entity.Add("- platform: mqtt");
 
             if (sensor.Name.Contains("'") && (sensor.Customize == null || !sensor.Customize.ContainsKey("friendly_name")))
             {
-                entity.Add($"  name: {sensor.Name.Replace("'", string.Empty)}");
+                entity.Add($"- name: {sensor.Name.Replace("'", string.Empty)}");
                 customization.Add($"  friendly_name: {sensor.Name}");
             }
             else
             {
-                entity.Add($"  name: {sensor.Name}");
+                entity.Add($"- name: {sensor.Name}");
             }
 
             if (sensor.Icon != null)

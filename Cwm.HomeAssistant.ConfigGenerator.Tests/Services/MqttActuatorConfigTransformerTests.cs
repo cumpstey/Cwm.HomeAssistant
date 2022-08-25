@@ -66,10 +66,10 @@ namespace Cwm.HomeAssistant.ConfigTransformer.Services
 
             // Assert
             Assert.AreEqual(1, result.Keys.Count, "One entity type returned");
-            Assert.AreEqual("switch", result.Keys.First(), "The type of the entity returned is correct");
-            Assert.AreEqual(1, result["switch"].Count, "Only one entity returned");
+            Assert.AreEqual("mqtt.switch", result.Keys.First(), "The type of the entity returned is correct");
+            Assert.AreEqual(1, result["mqtt.switch"].Count, "Only one entity returned");
 
-            var config = result["switch"].First();
+            var config = result["mqtt.switch"].First();
             Assert.IsTrue(config.Entity.Contains(expectedPartialConfig), config.Entity, "Config declared as expected");
             Assert.IsEmpty(config.Customization, "Customization declared as expected");
         }
@@ -95,10 +95,10 @@ namespace Cwm.HomeAssistant.ConfigTransformer.Services
 
             // Assert
             Assert.AreEqual(1, result.Keys.Count, "One entity type returned");
-            Assert.AreEqual("switch", result.Keys.First(), "The type of the entity returned is correct");
-            Assert.AreEqual(1, result["switch"].Count, "Only one entity returned");
+            Assert.AreEqual("mqtt.switch", result.Keys.First(), "The type of the entity returned is correct");
+            Assert.AreEqual(1, result["mqtt.switch"].Count, "Only one entity returned");
 
-            var config = result["switch"].First();
+            var config = result["mqtt.switch"].First();
             Assert.IsTrue(config.Entity.Contains(expectedPartialConfig), config.Entity, "Config declared as expected");
             Assert.IsEmpty(config.Customization, "Customization declared as expected");
         }
@@ -120,8 +120,7 @@ namespace Cwm.HomeAssistant.ConfigTransformer.Services
             };
             var expectedConfig = @"
 # Test switch, from hubitat via MQTT
-- platform: mqtt
-  name: Test switch
+- name: Test switch
   retain: true
   state_topic: hubitat/Test switch/switch
   command_topic: hubitat/Test switch/switch
@@ -134,10 +133,10 @@ namespace Cwm.HomeAssistant.ConfigTransformer.Services
 
             // Assert
             Assert.AreEqual(1, result.Keys.Count, "One entity type returned");
-            Assert.AreEqual("switch", result.Keys.First(), "The type of the entity returned is correct");
-            Assert.AreEqual(1, result["switch"].Count, "Only one entity returned");
+            Assert.AreEqual("mqtt.switch", result.Keys.First(), "The type of the entity returned is correct");
+            Assert.AreEqual(1, result["mqtt.switch"].Count, "Only one entity returned");
 
-            var config = result["switch"].First();
+            var config = result["mqtt.switch"].First();
             Assert.AreEqual(expectedConfig, config.Entity, "Config declared as expected");
             Assert.IsEmpty(config.Customization, "Customization declared as expected");
         }
@@ -156,8 +155,7 @@ namespace Cwm.HomeAssistant.ConfigTransformer.Services
             };
             var expectedConfig = @"
 # Test switch, from zipato via MQTT
-- platform: mqtt
-  name: Test switch
+- name: Test switch
   retain: true
   state_topic: zipato/attributes/abcd/value
   command_topic: zipato/request/attributes/abcd/value
@@ -173,10 +171,10 @@ namespace Cwm.HomeAssistant.ConfigTransformer.Services
 
             // Assert
             Assert.AreEqual(1, result.Keys.Count, "One entity type returned");
-            Assert.AreEqual("switch", result.Keys.First(), "The type of the entity returned is correct");
-            Assert.AreEqual(1, result["switch"].Count, "Only one entity returned");
+            Assert.AreEqual("mqtt.switch", result.Keys.First(), "The type of the entity returned is correct");
+            Assert.AreEqual(1, result["mqtt.switch"].Count, "Only one entity returned");
 
-            var config = result["switch"].First();
+            var config = result["mqtt.switch"].First();
             Assert.AreEqual(expectedConfig, config.Entity, "Config declared as expected");
             Assert.IsEmpty(config.Customization, "Customization declared as expected");
         }
@@ -194,8 +192,7 @@ namespace Cwm.HomeAssistant.ConfigTransformer.Services
             };
             var expectedConfig = @"
 # Test switch, from hubitat via MQTT
-- platform: mqtt
-  name: Test switch
+- name: Test switch
   retain: true
   state_topic: hubitat/Test switch/switch
   command_topic: hubitat/Test switch/switch
@@ -212,10 +209,10 @@ switch.test_switch:
 
             // Assert
             Assert.AreEqual(1, result.Keys.Count, "One entity type returned");
-            Assert.AreEqual("switch", result.Keys.First(), "The type of the entity returned is correct");
-            Assert.AreEqual(1, result["switch"].Count, "Only one entity returned");
+            Assert.AreEqual("mqtt.switch", result.Keys.First(), "The type of the entity returned is correct");
+            Assert.AreEqual(1, result["mqtt.switch"].Count, "Only one entity returned");
 
-            var config = result["switch"].First();
+            var config = result["mqtt.switch"].First();
             Assert.AreEqual(expectedConfig, config.Entity, "Config declared as expected");
             Assert.AreEqual(expectedCustomization, config.Customization, "Customization declared as expected");
         }
@@ -237,8 +234,7 @@ switch.test_switch:
             };
             var expectedConfig = @"
 # Test light, from hubitat via MQTT
-- platform: mqtt
-  name: Test light
+- name: Test light
   retain: true
   state_topic: hubitat/Test light/switch
   command_topic: hubitat/Test light/switch
@@ -251,10 +247,10 @@ switch.test_switch:
 
             // Assert
             Assert.AreEqual(1, result.Keys.Count, "One entity type returned");
-            Assert.AreEqual("light", result.Keys.First(), "The type of the entity returned is correct");
-            Assert.AreEqual(1, result["light"].Count, "Only one entity returned");
+            Assert.AreEqual("mqtt.light", result.Keys.First(), "The type of the entity returned is correct");
+            Assert.AreEqual(1, result["mqtt.light"].Count, "Only one entity returned");
 
-            var config = result["light"].First();
+            var config = result["mqtt.light"].First();
             Assert.AreEqual(expectedConfig, config.Entity, "Config declared as expected");
             Assert.IsEmpty(config.Customization, "Customization declared as expected");
         }
@@ -272,8 +268,7 @@ switch.test_switch:
             };
             var expectedConfig = @"
 # Test light, from hubitat via MQTT
-- platform: mqtt
-  name: Test light
+- name: Test light
   retain: true
   state_topic: hubitat/Test light/switch
   command_topic: hubitat/Test light/switch
@@ -290,10 +285,10 @@ light.test_light:
 
             // Assert
             Assert.AreEqual(1, result.Keys.Count, "One entity type returned");
-            Assert.AreEqual("light", result.Keys.First(), "The type of the entity returned is correct");
-            Assert.AreEqual(1, result["light"].Count, "Only one entity returned");
+            Assert.AreEqual("mqtt.light", result.Keys.First(), "The type of the entity returned is correct");
+            Assert.AreEqual(1, result["mqtt.light"].Count, "Only one entity returned");
 
-            var config = result["light"].First();
+            var config = result["mqtt.light"].First();
             Assert.AreEqual(expectedConfig, config.Entity, "Config declared as expected");
             Assert.AreEqual(expectedCustomization, config.Customization, "Customization declared as expected");
         }
@@ -311,8 +306,7 @@ light.test_light:
             };
             var expectedConfig = @"
 # Test light, from hubitat via MQTT
-- platform: mqtt
-  name: Test light
+- name: Test light
   retain: true
   state_topic: hubitat/Test light/switch
   command_topic: hubitat/Test light/switch
@@ -328,10 +322,10 @@ light.test_light:
 
             // Assert
             Assert.AreEqual(1, result.Keys.Count, "One entity type returned");
-            Assert.AreEqual("light", result.Keys.First(), "The type of the entity returned is correct");
-            Assert.AreEqual(1, result["light"].Count, "Only one entity returned");
+            Assert.AreEqual("mqtt.light", result.Keys.First(), "The type of the entity returned is correct");
+            Assert.AreEqual(1, result["mqtt.light"].Count, "Only one entity returned");
 
-            var config = result["light"].First();
+            var config = result["mqtt.light"].First();
             Assert.AreEqual(expectedConfig, config.Entity, "Config declared as expected");
             Assert.IsEmpty(config.Customization, "Customization declared as expected");
         }
@@ -349,8 +343,7 @@ light.test_light:
             };
             var expectedConfig = @"
 # Test light, from hubitat via MQTT
-- platform: mqtt
-  name: Test light
+- name: Test light
   retain: true
   state_topic: hubitat/Test light/switch
   command_topic: hubitat/Test light/switch
@@ -368,10 +361,10 @@ light.test_light:
 
             // Assert
             Assert.AreEqual(1, result.Keys.Count, "One entity type returned");
-            Assert.AreEqual("light", result.Keys.First(), "The type of the entity returned is correct");
-            Assert.AreEqual(1, result["light"].Count, "Only one entity returned");
+            Assert.AreEqual("mqtt.light", result.Keys.First(), "The type of the entity returned is correct");
+            Assert.AreEqual(1, result["mqtt.light"].Count, "Only one entity returned");
 
-            var config = result["light"].First();
+            var config = result["mqtt.light"].First();
             Assert.AreEqual(expectedConfig, config.Entity, "Config declared as expected");
             Assert.IsEmpty(config.Customization, "Customization declared as expected");
         }
@@ -394,8 +387,7 @@ light.test_light:
             };
             var expectedConfig = @"
 # Test heating, from genius via MQTT
-- platform: mqtt
-  name: Test heating
+- name: Test heating
   modes:
   - auto
   - heat
@@ -414,10 +406,10 @@ light.test_light:
 
             // Assert
             Assert.AreEqual(1, result.Keys.Count, "One entity type returned");
-            Assert.AreEqual("climate", result.Keys.First(), "The type of the entity returned is correct");
-            Assert.AreEqual(1, result["climate"].Count, "Only one entity returned");
+            Assert.AreEqual("mqtt.climate", result.Keys.First(), "The type of the entity returned is correct");
+            Assert.AreEqual(1, result["mqtt.climate"].Count, "Only one entity returned");
 
-            var config = result["climate"].First();
+            var config = result["mqtt.climate"].First();
             Assert.AreEqual(expectedConfig, config.Entity, "Config declared as expected");
             Assert.IsEmpty(config.Customization, "Customization declared as expected");
         }
@@ -436,8 +428,7 @@ light.test_light:
             };
             var expectedConfig = @"
 # Test heating, from genius via MQTT
-- platform: mqtt
-  name: Test heating
+- name: Test heating
   modes:
   - auto
   - heat
@@ -460,10 +451,10 @@ climate.test_heating:
 
             // Assert
             Assert.AreEqual(1, result.Keys.Count, "One entity type returned");
-            Assert.AreEqual("climate", result.Keys.First(), "The type of the entity returned is correct");
-            Assert.AreEqual(1, result["climate"].Count, "Only one entity returned");
+            Assert.AreEqual("mqtt.climate", result.Keys.First(), "The type of the entity returned is correct");
+            Assert.AreEqual(1, result["mqtt.climate"].Count, "Only one entity returned");
 
-            var config = result["climate"].First();
+            var config = result["mqtt.climate"].First();
             Assert.AreEqual(expectedConfig, config.Entity, "Config declared as expected");
             Assert.AreEqual(expectedCustomization, config.Customization, "Customization declared as expected");
         }

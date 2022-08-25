@@ -63,10 +63,10 @@ namespace Cwm.HomeAssistant.ConfigTransformer.Services
 
             // Assert
             Assert.AreEqual(1, result.Keys.Count, "One entity type returned");
-            Assert.AreEqual("sensor", result.Keys.First(), "The type of the entity returned is correct");
-            Assert.AreEqual(1, result["sensor"].Count, "Only one entity returned");
+            Assert.AreEqual("mqtt.sensor", result.Keys.First(), "The type of the entity returned is correct");
+            Assert.AreEqual(1, result["mqtt.sensor"].Count, "Only one entity returned");
 
-            var config = result["sensor"].First();
+            var config = result["mqtt.sensor"].First();
             Assert.IsTrue(config.Entity.Contains(expectedPartialConfig), config.Entity, "Config declared as expected");
             Assert.IsEmpty(config.Customization, "Customization declared as expected");
         }
@@ -97,10 +97,10 @@ namespace Cwm.HomeAssistant.ConfigTransformer.Services
 
             // Assert
             Assert.AreEqual(1, result.Keys.Count, "One entity type returned");
-            Assert.AreEqual(entityType, result.Keys.First(), "The type of the entity returned is correct");
-            Assert.AreEqual(1, result[entityType].Count, "Only one entity returned");
+            Assert.AreEqual($"mqtt.{entityType}", result.Keys.First(), "The type of the entity returned is correct");
+            Assert.AreEqual(1, result[$"mqtt.{entityType}"].Count, "Only one entity returned");
 
-            var config = result[entityType].First();
+            var config = result[$"mqtt.{entityType}"].First();
             Assert.IsTrue(config.Entity.Contains(expectedPartialConfig), "Config declared as expected");
 
             if (friendlyName != null)
@@ -134,10 +134,10 @@ namespace Cwm.HomeAssistant.ConfigTransformer.Services
 
             // Assert
             Assert.AreEqual(2, result.Keys.Count, "Multiple entity types returned");
-            Assert.Contains("sensor", result.Keys, "Expected entity types returned");
-            Assert.Contains("binary_sensor", result.Keys, "Expected entity types returned");
-            Assert.AreEqual(2, result["sensor"].Count, "Expected number of entities returned");
-            Assert.AreEqual(1, result["binary_sensor"].Count, "Expected number of entities returned");
+            Assert.Contains("mqtt.sensor", result.Keys, "Expected entity types returned");
+            Assert.Contains("mqtt.binary_sensor", result.Keys, "Expected entity types returned");
+            Assert.AreEqual(2, result["mqtt.sensor"].Count, "Expected number of entities returned");
+            Assert.AreEqual(1, result["mqtt.binary_sensor"].Count, "Expected number of entities returned");
         }
 
         [Test]
@@ -164,10 +164,10 @@ binary_sensor.test_users_button:
 
             // Assert
             Assert.AreEqual(1, result.Keys.Count, "One entity type returned");
-            Assert.AreEqual("binary_sensor", result.Keys.First(), "The type of the entity returned is correct");
-            Assert.AreEqual(1, result["binary_sensor"].Count, "Only one entity returned");
+            Assert.AreEqual("mqtt.binary_sensor", result.Keys.First(), "The type of the entity returned is correct");
+            Assert.AreEqual(1, result["mqtt.binary_sensor"].Count, "Only one entity returned");
 
-            var config = result["binary_sensor"].First();
+            var config = result["mqtt.binary_sensor"].First();
             Assert.IsTrue(config.Entity.Contains(expectedPartialConfig), config.Entity, "Config declared as expected");
 
             Assert.AreEqual(expectedCustomization, config.Customization, "Customization declared as expected");
@@ -197,10 +197,10 @@ sensor.test_device_battery:
 
             // Assert
             Assert.AreEqual(1, result.Keys.Count, "One entity type returned");
-            Assert.AreEqual("sensor", result.Keys.First(), "The type of the entity returned is correct");
-            Assert.AreEqual(1, result["sensor"].Count, "Only one entity returned");
+            Assert.AreEqual("mqtt.sensor", result.Keys.First(), "The type of the entity returned is correct");
+            Assert.AreEqual(1, result["mqtt.sensor"].Count, "Only one entity returned");
 
-            var config = result["sensor"].First();
+            var config = result["mqtt.sensor"].First();
             //Assert.IsTrue(config.Entity.Contains(expectedPartialConfig), config.Entity, "Config declared as expected");
 
             Assert.AreEqual(expectedCustomization, config.Customization, "Customization declared as expected");
@@ -224,8 +224,7 @@ sensor.test_device_battery:
             };
             var expectedConfig = @"
 # Test multisensor battery, from hubitat via MQTT
-- platform: mqtt
-  name: Test multisensor battery
+- name: Test multisensor battery
   device_class: battery
   state_topic: hubitat/Test multisensor/battery
   value_template: >
@@ -238,10 +237,10 @@ sensor.test_device_battery:
 
             // Assert
             Assert.AreEqual(1, result.Keys.Count, "One entity type returned");
-            Assert.AreEqual("sensor", result.Keys.First(), "The type of the entity returned is correct");
-            Assert.AreEqual(1, result["sensor"].Count, "Only one entity returned");
+            Assert.AreEqual("mqtt.sensor", result.Keys.First(), "The type of the entity returned is correct");
+            Assert.AreEqual(1, result["mqtt.sensor"].Count, "Only one entity returned");
 
-            var config = result["sensor"].First();
+            var config = result["mqtt.sensor"].First();
             Assert.AreEqual(expectedConfig, config.Entity, "Config declared as expected");
             Assert.IsEmpty(config.Customization, "Customization declared as expected");
         }
@@ -264,8 +263,7 @@ sensor.test_device_battery:
             };
             var expectedConfig = @"
 # Test button, from hubitat via MQTT
-- platform: mqtt
-  name: Test button
+- name: Test button
   state_topic: hubitat/Test button/1/push
   payload_on: pushed
   off_delay: 1
@@ -276,10 +274,10 @@ sensor.test_device_battery:
 
             // Assert
             Assert.AreEqual(1, result.Keys.Count, "One entity type returned");
-            Assert.AreEqual("binary_sensor", result.Keys.First(), "The type of the entity returned is correct");
-            Assert.AreEqual(1, result["binary_sensor"].Count, "Only one entity returned");
+            Assert.AreEqual("mqtt.binary_sensor", result.Keys.First(), "The type of the entity returned is correct");
+            Assert.AreEqual(1, result["mqtt.binary_sensor"].Count, "Only one entity returned");
 
-            var config = result["binary_sensor"].First();
+            var config = result["mqtt.binary_sensor"].First();
             Assert.AreEqual(expectedConfig, config.Entity, "Config declared as expected");
             Assert.IsEmpty(config.Customization, "Customization declared as expected");
         }
@@ -297,15 +295,13 @@ sensor.test_device_battery:
             };
             var expectedConfig = new[] { @"
 # Test button 1, from hubitat via MQTT
-- platform: mqtt
-  name: Test button 1
+- name: Test button 1
   state_topic: hubitat/Test button/1/push
   payload_on: pushed
   off_delay: 1
 ".Trim(), @"
 # Test button 2, from hubitat via MQTT
-- platform: mqtt
-  name: Test button 2
+- name: Test button 2
   state_topic: hubitat/Test button/2/push
   payload_on: pushed
   off_delay: 1
@@ -316,16 +312,16 @@ sensor.test_device_battery:
 
             // Assert
             Assert.AreEqual(1, result.Keys.Count, "One entity type returned");
-            Assert.AreEqual("binary_sensor", result.Keys.First(), "The type of the entity returned is correct");
-            Assert.AreEqual(expectedConfig.Length, result["binary_sensor"].Count, "Correct number of entities returned");
+            Assert.AreEqual("mqtt.binary_sensor", result.Keys.First(), "The type of the entity returned is correct");
+            Assert.AreEqual(expectedConfig.Length, result["mqtt.binary_sensor"].Count, "Correct number of entities returned");
 
-            var configs = result["binary_sensor"].Select(i => i.Entity).ToArray();
+            var configs = result["mqtt.binary_sensor"].Select(i => i.Entity).ToArray();
             foreach (var expected in expectedConfig)
             {
                 Assert.Contains(expected, configs, "Config declared as expected");
             }
 
-            Assert.IsTrue(result["binary_sensor"].All(i => string.IsNullOrEmpty(i.Customization)), "Customization declared as expected");
+            Assert.IsTrue(result["mqtt.binary_sensor"].All(i => string.IsNullOrEmpty(i.Customization)), "Customization declared as expected");
         }
 
         [Test]
@@ -341,15 +337,13 @@ sensor.test_device_battery:
             };
             var expectedConfig = new[] { @"
 # Test controller button 1, from hubitat via MQTT
-- platform: mqtt
-  name: Test controller button 1
+- name: Test controller button 1
   state_topic: hubitat/Test controller/1/push
   payload_on: pushed
   off_delay: 1
 ".Trim(), @"
 # Test controller button 2, from hubitat via MQTT
-- platform: mqtt
-  name: Test controller button 2
+- name: Test controller button 2
   state_topic: hubitat/Test controller/2/push
   payload_on: pushed
   off_delay: 1
@@ -360,16 +354,16 @@ sensor.test_device_battery:
 
             // Assert
             Assert.AreEqual(1, result.Keys.Count, "One entity type returned");
-            Assert.AreEqual("binary_sensor", result.Keys.First(), "The type of the entity returned is correct");
-            Assert.AreEqual(expectedConfig.Length, result["binary_sensor"].Count, "Correct number of entities returned");
+            Assert.AreEqual("mqtt.binary_sensor", result.Keys.First(), "The type of the entity returned is correct");
+            Assert.AreEqual(expectedConfig.Length, result["mqtt.binary_sensor"].Count, "Correct number of entities returned");
 
-            var configs = result["binary_sensor"].Select(i => i.Entity).ToArray();
+            var configs = result["mqtt.binary_sensor"].Select(i => i.Entity).ToArray();
             foreach (var expected in expectedConfig)
             {
                 Assert.Contains(expected, configs, "Config declared as expected");
             }
 
-            Assert.IsTrue(result["binary_sensor"].All(i => string.IsNullOrEmpty(i.Customization)), "Customization declared as expected");
+            Assert.IsTrue(result["mqtt.binary_sensor"].All(i => string.IsNullOrEmpty(i.Customization)), "Customization declared as expected");
         }
 
         [Test]
@@ -385,8 +379,7 @@ sensor.test_device_battery:
             };
             var expectedConfig = @"
 # Test button hold, from hubitat via MQTT
-- platform: mqtt
-  name: Test button hold
+- name: Test button hold
   state_topic: hubitat/Test button/1/hold
   payload_on: held
   off_delay: 1
@@ -397,10 +390,10 @@ sensor.test_device_battery:
 
             // Assert
             Assert.AreEqual(1, result.Keys.Count, "One entity type returned");
-            Assert.AreEqual("binary_sensor", result.Keys.First(), "The type of the entity returned is correct");
-            Assert.AreEqual(1, result["binary_sensor"].Count, "Only one entity returned");
+            Assert.AreEqual("mqtt.binary_sensor", result.Keys.First(), "The type of the entity returned is correct");
+            Assert.AreEqual(1, result["mqtt.binary_sensor"].Count, "Only one entity returned");
 
-            var config = result["binary_sensor"].First();
+            var config = result["mqtt.binary_sensor"].First();
             Assert.AreEqual(expectedConfig, config.Entity, "Config declared as expected");
             Assert.IsEmpty(config.Customization, "Customization declared as expected");
         }
@@ -419,8 +412,7 @@ sensor.test_device_battery:
             };
             var expectedConfig = @"
 # Test button hold, from hubitat via MQTT
-- platform: mqtt
-  name: Test button hold
+- name: Test button hold
   state_topic: hubitat/Test button/1/hold
   payload_on: held
   payload_off: released
@@ -431,10 +423,10 @@ sensor.test_device_battery:
 
             // Assert
             Assert.AreEqual(1, result.Keys.Count, "One entity type returned");
-            Assert.AreEqual("binary_sensor", result.Keys.First(), "The type of the entity returned is correct");
-            Assert.AreEqual(1, result["binary_sensor"].Count, "Only one entity returned");
+            Assert.AreEqual("mqtt.binary_sensor", result.Keys.First(), "The type of the entity returned is correct");
+            Assert.AreEqual(1, result["mqtt.binary_sensor"].Count, "Only one entity returned");
 
-            var config = result["binary_sensor"].First();
+            var config = result["mqtt.binary_sensor"].First();
             Assert.AreEqual(expectedConfig, config.Entity, "Config declared as expected");
             Assert.IsEmpty(config.Customization, "Customization declared as expected");
         }
@@ -452,15 +444,13 @@ sensor.test_device_battery:
             };
             var expectedConfig = new[] { @"
 # Test button 1 hold, from hubitat via MQTT
-- platform: mqtt
-  name: Test button 1 hold
+- name: Test button 1 hold
   state_topic: hubitat/Test button/1/hold
   payload_on: held
   payload_off: released
 ".Trim(), @"
 # Test button 2 hold, from hubitat via MQTT
-- platform: mqtt
-  name: Test button 2 hold
+- name: Test button 2 hold
   state_topic: hubitat/Test button/2/hold
   payload_on: held
   payload_off: released
@@ -471,16 +461,16 @@ sensor.test_device_battery:
 
             // Assert
             Assert.AreEqual(1, result.Keys.Count, "One entity type returned");
-            Assert.AreEqual("binary_sensor", result.Keys.First(), "The type of the entity returned is correct");
-            Assert.AreEqual(expectedConfig.Length, result["binary_sensor"].Count, "Correct number of entities returned");
+            Assert.AreEqual("mqtt.binary_sensor", result.Keys.First(), "The type of the entity returned is correct");
+            Assert.AreEqual(expectedConfig.Length, result["mqtt.binary_sensor"].Count, "Correct number of entities returned");
 
-            var configs = result["binary_sensor"].Select(i => i.Entity).ToArray();
+            var configs = result["mqtt.binary_sensor"].Select(i => i.Entity).ToArray();
             foreach (var expected in expectedConfig)
             {
                 Assert.Contains(expected, configs, "Config declared as expected");
             }
 
-            Assert.IsTrue(result["binary_sensor"].All(i => string.IsNullOrEmpty(i.Customization)), "Customization declared as expected");
+            Assert.IsTrue(result["mqtt.binary_sensor"].All(i => string.IsNullOrEmpty(i.Customization)), "Customization declared as expected");
         }
 
         #endregion
@@ -500,8 +490,7 @@ sensor.test_device_battery:
             };
             var expectedConfig = @"
 # Test contact, from hubitat via MQTT
-- platform: mqtt
-  name: Test contact
+- name: Test contact
   state_topic: hubitat/Test/contact
   payload_on: open
   payload_off: closed
@@ -516,10 +505,10 @@ binary_sensor.test_contact:
 
             // Assert
             Assert.AreEqual(1, result.Keys.Count, "One entity type returned");
-            Assert.AreEqual("binary_sensor", result.Keys.First(), "The type of the entity returned is correct");
-            Assert.AreEqual(1, result["binary_sensor"].Count, "Only one entity returned");
+            Assert.AreEqual("mqtt.binary_sensor", result.Keys.First(), "The type of the entity returned is correct");
+            Assert.AreEqual(1, result["mqtt.binary_sensor"].Count, "Only one entity returned");
 
-            var config = result["binary_sensor"].First();
+            var config = result["mqtt.binary_sensor"].First();
             Assert.AreEqual(expectedConfig, config.Entity, "Config declared as expected");
             Assert.AreEqual(expectedCustomization, config.Customization, "Customization declared as expected");
         }
@@ -537,8 +526,7 @@ binary_sensor.test_contact:
             };
             var expectedConfig = @"
 # Test door contact, from hubitat via MQTT
-- platform: mqtt
-  name: Test door contact
+- name: Test door contact
   device_class: door
   state_topic: hubitat/Test door/contact
   payload_on: open
@@ -550,10 +538,10 @@ binary_sensor.test_contact:
 
             // Assert
             Assert.AreEqual(1, result.Keys.Count, "One entity type returned");
-            Assert.AreEqual("binary_sensor", result.Keys.First(), "The type of the entity returned is correct");
-            Assert.AreEqual(1, result["binary_sensor"].Count, "Only one entity returned");
+            Assert.AreEqual("mqtt.binary_sensor", result.Keys.First(), "The type of the entity returned is correct");
+            Assert.AreEqual(1, result["mqtt.binary_sensor"].Count, "Only one entity returned");
 
-            var config = result["binary_sensor"].First();
+            var config = result["mqtt.binary_sensor"].First();
             Assert.AreEqual(expectedConfig, config.Entity, "Config declared as expected");
         }
 
@@ -575,8 +563,7 @@ binary_sensor.test_contact:
             };
             var expectedConfig = @"
 # Test device illuminance, from hubitat via MQTT
-- platform: mqtt
-  name: Test device illuminance
+- name: Test device illuminance
   device_class: illuminance
   state_topic: hubitat/Test multisensor/illuminance
   value_template: >
@@ -590,10 +577,10 @@ binary_sensor.test_contact:
 
             // Assert
             Assert.AreEqual(1, result.Keys.Count, "One entity type returned");
-            Assert.AreEqual("sensor", result.Keys.First(), "The type of the entity returned is correct");
-            Assert.AreEqual(1, result["sensor"].Count, "Only one entity returned");
+            Assert.AreEqual("mqtt.sensor", result.Keys.First(), "The type of the entity returned is correct");
+            Assert.AreEqual(1, result["mqtt.sensor"].Count, "Only one entity returned");
 
-            var config = result["sensor"].First();
+            var config = result["mqtt.sensor"].First();
             Assert.AreEqual(expectedConfig, config.Entity, "Config declared as expected");
             Assert.IsEmpty(config.Customization, "Customization declared as expected");
         }
@@ -615,8 +602,7 @@ binary_sensor.test_contact:
             };
             var expectedConfig = @"
 # Test flood moisture, from hubitat via MQTT
-- platform: mqtt
-  name: Test flood moisture
+- name: Test flood moisture
   device_class: moisture
   state_topic: hubitat/Test flood/water
   payload_on: wet
@@ -632,10 +618,10 @@ binary_sensor.test_flood_moisture:
 
             // Assert
             Assert.AreEqual(1, result.Keys.Count, "One entity type returned");
-            Assert.AreEqual("binary_sensor", result.Keys.First(), "The type of the entity returned is correct");
-            Assert.AreEqual(1, result["binary_sensor"].Count, "Only one entity returned");
+            Assert.AreEqual("mqtt.binary_sensor", result.Keys.First(), "The type of the entity returned is correct");
+            Assert.AreEqual(1, result["mqtt.binary_sensor"].Count, "Only one entity returned");
 
-            var config = result["binary_sensor"].First();
+            var config = result["mqtt.binary_sensor"].First();
             Assert.AreEqual(expectedConfig, config.Entity, "Config declared as expected");
             Assert.AreEqual(expectedCustomization, config.Customization, "Customization declared as expected");
         }
@@ -658,8 +644,7 @@ binary_sensor.test_flood_moisture:
             };
             var expectedConfig = @"
 # Test device motion, from hubitat via MQTT
-- platform: mqtt
-  name: Test device motion
+- name: Test device motion
   device_class: motion
   state_topic: hubitat/Test multisensor/motion
   payload_on: active
@@ -671,10 +656,10 @@ binary_sensor.test_flood_moisture:
 
             // Assert
             Assert.AreEqual(1, result.Keys.Count, "One entity type returned");
-            Assert.AreEqual("binary_sensor", result.Keys.First(), "The type of the entity returned is correct");
-            Assert.AreEqual(1, result["binary_sensor"].Count, "Only one entity returned");
+            Assert.AreEqual("mqtt.binary_sensor", result.Keys.First(), "The type of the entity returned is correct");
+            Assert.AreEqual(1, result["mqtt.binary_sensor"].Count, "Only one entity returned");
 
-            var config = result["binary_sensor"].First();
+            var config = result["mqtt.binary_sensor"].First();
             Assert.AreEqual(expectedConfig, config.Entity, "Config declared as expected");
             Assert.IsEmpty(config.Customization, "Customization declared as expected");
         }
@@ -696,8 +681,7 @@ binary_sensor.test_flood_moisture:
             };
             var expectedConfig = @"
 # Test multisensor connectivity, from hubitat via MQTT
-- platform: mqtt
-  name: Test multisensor connectivity
+- name: Test multisensor connectivity
   device_class: connectivity
   state_topic: hubitat/Test multisensor/activity
   payload_on: active
@@ -709,10 +693,10 @@ binary_sensor.test_flood_moisture:
 
             // Assert
             Assert.AreEqual(1, result.Keys.Count, "One entity type returned");
-            Assert.AreEqual("binary_sensor", result.Keys.First(), "The type of the entity returned is correct");
-            Assert.AreEqual(1, result["binary_sensor"].Count, "Only one entity returned");
+            Assert.AreEqual("mqtt.binary_sensor", result.Keys.First(), "The type of the entity returned is correct");
+            Assert.AreEqual(1, result["mqtt.binary_sensor"].Count, "Only one entity returned");
 
-            var config = result["binary_sensor"].First();
+            var config = result["mqtt.binary_sensor"].First();
             Assert.AreEqual(expectedConfig, config.Entity, "Config declared as expected");
             Assert.IsEmpty(config.Customization, "Customization declared as expected");
         }
@@ -735,8 +719,7 @@ binary_sensor.test_flood_moisture:
             };
             var expectedConfig = @"
 # Test device power, from hubitat via MQTT
-- platform: mqtt
-  name: Test device power
+- name: Test device power
   state_topic: hubitat/Test meter/power
   value_template: >
     {{ value | float }}
@@ -749,10 +732,10 @@ binary_sensor.test_flood_moisture:
 
             // Assert
             Assert.AreEqual(1, result.Keys.Count, "One entity type returned");
-            Assert.AreEqual("sensor", result.Keys.First(), "The type of the entity returned is correct");
-            Assert.AreEqual(1, result["sensor"].Count, "Only one entity returned");
+            Assert.AreEqual("mqtt.sensor", result.Keys.First(), "The type of the entity returned is correct");
+            Assert.AreEqual(1, result["mqtt.sensor"].Count, "Only one entity returned");
 
-            var config = result["sensor"].First();
+            var config = result["mqtt.sensor"].First();
             Assert.AreEqual(expectedConfig, config.Entity, "Config declared as expected");
             Assert.IsEmpty(config.Customization, "Customization declared as expected");
         }
@@ -771,8 +754,7 @@ binary_sensor.test_flood_moisture:
             };
             var expectedConfig = @"
 # Test device cycle, from homeassistant via MQTT
-- platform: mqtt
-  name: Test device cycle
+- name: Test device cycle
   state_topic: homeassistant/Test device/cycle
 ".Trim();
 
@@ -781,10 +763,10 @@ binary_sensor.test_flood_moisture:
 
             // Assert
             Assert.AreEqual(1, result.Keys.Count, "One entity type returned");
-            Assert.AreEqual("sensor", result.Keys.First(), "The type of the entity returned is correct");
-            Assert.AreEqual(1, result["sensor"].Count, "Only one entity returned");
+            Assert.AreEqual("mqtt.sensor", result.Keys.First(), "The type of the entity returned is correct");
+            Assert.AreEqual(1, result["mqtt.sensor"].Count, "Only one entity returned");
 
-            var config = result["sensor"].First();
+            var config = result["mqtt.sensor"].First();
             Assert.AreEqual(expectedConfig, config.Entity, "Config declared as expected");
             Assert.IsEmpty(config.Customization, "Customization declared as expected");
         }
@@ -864,8 +846,7 @@ binary_sensor.test_device:
             };
             var expectedConfig = @"
 # Test presence, from hubitat via MQTT
-- platform: mqtt
-  name: Test presence
+- name: Test presence
   device_class: presence
   state_topic: hubitat/Test presence/presence
   payload_on: present
@@ -877,10 +858,10 @@ binary_sensor.test_device:
 
             // Assert
             Assert.AreEqual(1, result.Keys.Count, "One entity type returned");
-            Assert.AreEqual("binary_sensor", result.Keys.First(), "The type of the entity returned is correct");
-            Assert.AreEqual(1, result["binary_sensor"].Count, "Only one entity returned");
+            Assert.AreEqual("mqtt.binary_sensor", result.Keys.First(), "The type of the entity returned is correct");
+            Assert.AreEqual(1, result["mqtt.binary_sensor"].Count, "Only one entity returned");
 
-            var config = result["binary_sensor"].First();
+            var config = result["mqtt.binary_sensor"].First();
             Assert.AreEqual(expectedConfig, config.Entity, "Config declared as expected");
             Assert.IsEmpty(config.Customization, "Customization declared as expected");
         }
@@ -902,8 +883,7 @@ binary_sensor.test_device:
             };
             var expectedConfig = @"
 # Test device scene, from hubitat via MQTT
-- platform: mqtt
-  name: Test device scene
+- name: Test device scene
   state_topic: hubitat/Test device/scene
   force_update: true
 ".Trim();
@@ -913,10 +893,10 @@ binary_sensor.test_device:
 
             // Assert
             Assert.AreEqual(1, result.Keys.Count, "One entity type returned");
-            Assert.AreEqual("sensor", result.Keys.First(), "The type of the entity returned is correct");
-            Assert.AreEqual(1, result["sensor"].Count, "Only one entity returned");
+            Assert.AreEqual("mqtt.sensor", result.Keys.First(), "The type of the entity returned is correct");
+            Assert.AreEqual(1, result["mqtt.sensor"].Count, "Only one entity returned");
 
-            var config = result["sensor"].First();
+            var config = result["mqtt.sensor"].First();
             Assert.AreEqual(expectedConfig, config.Entity, "Config declared as expected");
             Assert.IsEmpty(config.Customization, "Customization declared as expected");
         }
@@ -938,8 +918,7 @@ binary_sensor.test_device:
             };
             var expectedConfig = @"
 # Test smoke, from hubitat via MQTT
-- platform: mqtt
-  name: Test smoke
+- name: Test smoke
   device_class: smoke
   state_topic: hubitat/Test smoke/smoke
   value_template: >
@@ -953,10 +932,10 @@ binary_sensor.test_device:
 
             // Assert
             Assert.AreEqual(1, result.Keys.Count, "One entity type returned");
-            Assert.AreEqual("binary_sensor", result.Keys.First(), "The type of the entity returned is correct");
-            Assert.AreEqual(1, result["binary_sensor"].Count, "Only one entity returned");
+            Assert.AreEqual("mqtt.binary_sensor", result.Keys.First(), "The type of the entity returned is correct");
+            Assert.AreEqual(1, result["mqtt.binary_sensor"].Count, "Only one entity returned");
 
-            var config = result["binary_sensor"].First();
+            var config = result["mqtt.binary_sensor"].First();
             Assert.AreEqual(expectedConfig, config.Entity, "Config declared as expected");
             Assert.IsEmpty(config.Customization, "Customization declared as expected");
         }
@@ -979,8 +958,7 @@ binary_sensor.test_device:
             };
             var expectedConfig = @"
 # Test device temperature, from hubitat via MQTT
-- platform: mqtt
-  name: Test device temperature
+- name: Test device temperature
   device_class: temperature
   state_topic: hubitat/Test multisensor/temperature
   value_template: >
@@ -994,10 +972,10 @@ binary_sensor.test_device:
 
             // Assert
             Assert.AreEqual(1, result.Keys.Count, "One entity type returned");
-            Assert.AreEqual("sensor", result.Keys.First(), "The type of the entity returned is correct");
-            Assert.AreEqual(1, result["sensor"].Count, "Only one entity returned");
+            Assert.AreEqual("mqtt.sensor", result.Keys.First(), "The type of the entity returned is correct");
+            Assert.AreEqual(1, result["mqtt.sensor"].Count, "Only one entity returned");
 
-            var config = result["sensor"].First();
+            var config = result["mqtt.sensor"].First();
             Assert.AreEqual(expectedConfig, config.Entity, "Config declared as expected");
             Assert.IsEmpty(config.Customization, "Customization declared as expected");
         }
@@ -1051,8 +1029,7 @@ binary_sensor.test_device:
             };
             var expectedConfig = @"
 # Test meter, from hubitat via MQTT
-- platform: mqtt
-  name: Test meter
+- name: Test meter
   state_topic: hubitat/Test meter/power
   value_template: '{%if (value | float) < 5-%}on{%-else-%}off{%-endif%}'
   payload_on: 'on'
@@ -1064,10 +1041,10 @@ binary_sensor.test_device:
 
             // Assert
             Assert.AreEqual(1, result.Keys.Count, "One entity type returned");
-            Assert.AreEqual("binary_sensor", result.Keys.First(), "The type of the entity returned is correct");
-            Assert.AreEqual(1, result["binary_sensor"].Count, "Only one entity returned");
+            Assert.AreEqual("mqtt.binary_sensor", result.Keys.First(), "The type of the entity returned is correct");
+            Assert.AreEqual(1, result["mqtt.binary_sensor"].Count, "Only one entity returned");
 
-            var config = result["binary_sensor"].First();
+            var config = result["mqtt.binary_sensor"].First();
             Assert.AreEqual(expectedConfig, config.Entity, "Config declared as expected");
             Assert.IsEmpty(config.Customization, "Customization declared as expected");
         }

@@ -76,17 +76,17 @@ namespace Cwm.HomeAssistant.Config.Services
             if (definition.Type == "light" || definition.Type.EndsWith("-light"))
             {
                 var config = FormatLightDefinition(definition);
-                return new KeyValuePair<string, ConfigEntry>("light", config);
+                return new KeyValuePair<string, ConfigEntry>("mqtt.light", config);
             }
             else if (definition.Type == "switch")
             {
                 var config = FormatSwitchDefinition(definition);
-                return new KeyValuePair<string, ConfigEntry>("switch", config);
+                return new KeyValuePair<string, ConfigEntry>("mqtt.switch", config);
             }
             else if (definition.Type == "heating")
             {
                 var config = FormatHeatingDefinition(definition);
-                return new KeyValuePair<string, ConfigEntry>("climate", config);
+                return new KeyValuePair<string, ConfigEntry>("mqtt.climate", config);
             }
 
             throw new UnrecognizedTypeException(definition.Type);
@@ -99,8 +99,7 @@ namespace Cwm.HomeAssistant.Config.Services
 
             entity.Add($"# {definition.Name}, from {definition.Platform} via MQTT");
 
-            entity.Add("- platform: mqtt");
-            entity.AddRange(this.GetEntityNameLines(definition.Name));
+            entity.AddRange(this.GetEntityNameLines(definition.Name, true));
 
             entity.Add("  retain: true");
 
@@ -156,8 +155,7 @@ namespace Cwm.HomeAssistant.Config.Services
 
             entity.Add($"# {definition.Name}, from {definition.Platform} via MQTT");
 
-            entity.Add("- platform: mqtt");
-                        entity.AddRange(this.GetEntityNameLines(definition.Name));
+            entity.AddRange(this.GetEntityNameLines(definition.Name, true));
             entity.Add("  retain: true");
 
             if (definition.Icon != null)
@@ -208,8 +206,7 @@ namespace Cwm.HomeAssistant.Config.Services
 
             entity.Add($"# {definition.Name}, from {definition.Platform} via MQTT");
 
-            entity.Add("- platform: mqtt");
-                        entity.AddRange(this.GetEntityNameLines(definition.Name));
+            entity.AddRange(this.GetEntityNameLines(definition.Name, true));
 
             if (definition.Icon != null)
             {
@@ -248,11 +245,11 @@ namespace Cwm.HomeAssistant.Config.Services
             };
         }
 
-        private List<string> GetEntityNameLines(string name)
+        private List<string> GetEntityNameLines(string name, bool isFirstLine)
         {
             var lines = new List<string>
             {
-                $"  name: {name}"
+                $"{(isFirstLine ? "-" : " ")} name: {name}"
             };
             if (name.Contains("'"))
             {
